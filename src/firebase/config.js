@@ -1,15 +1,17 @@
 import { initializeApp } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
+import { getAnalytics } from "firebase/analytics";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyAiT4PDGZpmxv84ps5QlhO8u4JPj4OqtV0",
-  authDomain: "mds-profile-website.firebaseapp.com",
-  projectId: "mds-profile-website",
-  storageBucket: "mds-profile-website.firebasestorage.app",
-  messagingSenderId: "770352959790",
-  appId: "1:770352959790:web:6d09c8e52bb3089d37eabf",
-  measurementId: "G-8H897P4600"
+  apiKey: "AIzaSyBxpFtHU-d4OLr4N-ewXicRPVDXRRYC4aY",
+  authDomain: "mdstechservices-ph.firebaseapp.com",
+  projectId: "mdstechservices-ph",
+  storageBucket: "mdstechservices-ph.firebasestorage.app",
+  messagingSenderId: "821432444079",
+  appId: "1:821432444079:web:9461dc6e4789522d50205a",
+  measurementId: "G-NMGGX0HYY5"
 };
 
 const app = initializeApp(firebaseConfig);
+const analytics = getAnalytics(app);
 export const db = getFirestore(app);

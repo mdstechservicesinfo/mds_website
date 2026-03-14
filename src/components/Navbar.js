@@ -34,7 +34,7 @@ function Navbar() {
         .nav-inner {
           max-width: 1280px;
           margin: 0 auto;
-          height: 72px;
+          height: 90px;
           display: flex;
           align-items: center;
           justify-content: space-between;
@@ -43,12 +43,12 @@ function Navbar() {
           text-decoration: none;
           display: flex;
           align-items: center;
-          gap: 12px;
+          gap: 4px;
         }
         .brand-mds {
           font-family: 'Outfit', sans-serif;
           font-weight: 900;
-          font-size: 28px;
+          font-size: 38px;
           letter-spacing: -0.04em;
           background: linear-gradient(135deg, #2563eb 0%, #06b6d4 60%, #22d3ee 100%);
           -webkit-background-clip: text;
@@ -63,7 +63,7 @@ function Navbar() {
         }
         .brand-divider {
           width: 1px;
-          height: 28px;
+          height: 36px;
           background: linear-gradient(to bottom, transparent, rgba(37,99,235,0.4), transparent);
         }
         .brand-text-group {
@@ -74,13 +74,13 @@ function Navbar() {
         .brand-text-top {
           font-family: 'Outfit', sans-serif;
           font-weight: 700;
-          font-size: 13px;
+          font-size: 16px;
           color: rgba(255,255,255,0.9);
           letter-spacing: -0.01em;
         }
         .brand-text-bottom {
           font-family: 'JetBrains Mono', monospace;
-          font-size: 9px;
+          font-size: 10px;
           color: rgba(6,182,212,0.7);
           letter-spacing: 0.1em;
           text-transform: uppercase;
@@ -93,9 +93,9 @@ function Navbar() {
           margin: 0; padding: 0;
         }
         .nav-links a {
-          padding: 8px 18px;
+          padding: 9px 20px;
           font-family: 'Outfit', sans-serif;
-          font-size: 14px;
+          font-size: 15px;
           font-weight: 500;
           color: rgba(255,255,255,0.55);
           text-decoration: none;
@@ -105,11 +105,11 @@ function Navbar() {
         .nav-links a:hover { color: #fff; background: rgba(255,255,255,0.06); }
         .nav-links a.active { color: #fff; }
         .nav-cta {
-          padding: 10px 24px;
+          padding: 12px 28px;
           background: linear-gradient(135deg, #2563eb, #06b6d4);
           border-radius: 10px;
           font-family: 'Outfit', sans-serif;
-          font-size: 14px;
+          font-size: 15px;
           font-weight: 600;
           color: #fff;
           text-decoration: none;
@@ -129,7 +129,7 @@ function Navbar() {
         }
         .hamburger span {
           display: block;
-          width: 22px; height: 2px;
+          width: 24px; height: 2px;
           background: rgba(255,255,255,0.8);
           border-radius: 2px;
           transition: all 0.3s ease;
@@ -156,13 +156,16 @@ function Navbar() {
           transition: all 0.2s ease;
         }
         .mobile-nav a:hover { background: rgba(255,255,255,0.06); color: #fff; }
+
         @media (max-width: 768px) {
           .nav-wrap { padding: 0 20px; }
           .nav-links, .nav-cta { display: none; }
           .hamburger { display: flex; }
-          .brand-text-group { display: none; }
-          .brand-divider { display: none; }
-          .brand-mds { font-size: 24px; }
+          .brand-mds { font-size: 26px; }
+          .brand-divider { display: block; }
+          .brand-text-group { display: flex; }
+          .brand-text-top { font-size: 11px; }
+          .brand-text-bottom { font-size: 8px; }
         }
       `}</style>
 
