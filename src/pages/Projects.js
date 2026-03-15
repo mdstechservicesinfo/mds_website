@@ -1,8 +1,19 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import Navbar from '../components/Navbar';
 import { Link } from 'react-router-dom';
+import { Helmet } from 'react-helmet-async';
 
 function Projects() {
+  useEffect(() => {
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(e => {
+        if (e.isIntersecting) e.target.classList.add('visible');
+      });
+    }, { threshold: 0.1 });
+    document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+    return () => observer.disconnect();
+  }, []);
+
   return (
     <div style={{ background: '#040610', minHeight: '100vh', color: '#fff', overflowX: 'hidden' }}>
       <style>{`
@@ -19,6 +30,36 @@ function Projects() {
 
         .projects * { box-sizing: border-box; margin: 0; padding: 0; }
 
+        /* ── KEYFRAMES ── */
+        @keyframes fadeUp {
+          from { opacity: 0; transform: translateY(24px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes glow1Pulse {
+          0%,100% { opacity: 0.6; transform: scale(1); }
+          50% { opacity: 1; transform: scale(1.08); }
+        }
+        @keyframes gradientShift {
+          0%,100% { background-position: 0% 50%; }
+          50% { background-position: 100% 50%; }
+        }
+        @keyframes shimmer {
+          0% { background-position: -200% center; }
+          100% { background-position: 200% center; }
+        }
+
+        /* ── SCROLL REVEAL ── */
+        .reveal {
+          opacity: 0;
+          transform: translateY(28px);
+          transition: opacity 0.65s cubic-bezier(0.4,0,0.2,1), transform 0.65s cubic-bezier(0.4,0,0.2,1);
+        }
+        .reveal.visible { opacity: 1; transform: translateY(0); }
+        .reveal-d1 { transition-delay: 0.1s; }
+        .reveal-d2 { transition-delay: 0.2s; }
+        .reveal-d3 { transition-delay: 0.3s; }
+        .reveal-d4 { transition-delay: 0.4s; }
+
         .page-hero {
           padding: 160px 40px 80px;
           max-width: 1280px;
@@ -32,6 +73,7 @@ function Projects() {
           background: radial-gradient(circle, rgba(37,99,235,0.1) 0%, transparent 70%);
           top: 0; right: 0;
           pointer-events: none;
+          animation: glow1Pulse 6s ease-in-out infinite;
         }
         .section-tag {
           font-family: 'JetBrains Mono', monospace;
@@ -49,12 +91,15 @@ function Projects() {
           letter-spacing: -0.04em;
           line-height: 1.05;
           margin-bottom: 24px;
+          animation: fadeUp 0.65s ease 0.05s both;
         }
         .page-title span {
-          background: linear-gradient(135deg, #2563eb, #06b6d4);
+          background: linear-gradient(135deg, #2563eb, #06b6d4, #22d3ee, #06b6d4, #2563eb);
+          background-size: 300%;
           -webkit-background-clip: text;
           -webkit-text-fill-color: transparent;
           background-clip: text;
+          animation: gradientShift 5s ease infinite;
         }
         .page-desc {
           font-family: 'Outfit', sans-serif;
@@ -63,6 +108,7 @@ function Projects() {
           max-width: 600px;
           line-height: 1.8;
           font-weight: 400;
+          animation: fadeUp 0.65s ease 0.15s both;
         }
 
         /* PROJECTS GRID */
@@ -84,15 +130,28 @@ function Projects() {
           background: rgba(255,255,255,0.02);
           border: 1px solid var(--border);
           border-radius: 20px;
-          transition: all 0.3s ease;
+          transition: all 0.35s cubic-bezier(0.4,0,0.2,1);
           display: flex;
           flex-direction: column;
           gap: 16px;
+          position: relative;
+          overflow: hidden;
         }
+        .project-card::before {
+          content: '';
+          position: absolute;
+          top: 0; left: 0; right: 0;
+          height: 1px;
+          background: linear-gradient(90deg, transparent, rgba(37,99,235,0.6), rgba(6,182,212,0.5), transparent);
+          opacity: 0;
+          transition: opacity 0.4s;
+        }
+        .project-card:hover::before { opacity: 1; }
         .project-card:hover {
           border-color: rgba(37,99,235,0.3);
           background: rgba(37,99,235,0.05);
           transform: translateY(-6px);
+          box-shadow: 0 24px 48px rgba(0,0,0,0.3), 0 0 0 1px rgba(37,99,235,0.1);
         }
         .project-card.featured {
           grid-column: span 2;
@@ -150,13 +209,17 @@ function Projects() {
           font-family: 'Outfit', sans-serif;
           font-size: 13px;
           color: rgba(255,255,255,0.6);
+          transition: color 0.2s;
         }
+        .feature-item:hover { color: rgba(255,255,255,0.9); }
         .feature-dot {
           width: 6px; height: 6px;
           background: linear-gradient(135deg, #2563eb, #06b6d4);
           border-radius: 50%;
           flex-shrink: 0;
+          transition: transform 0.2s, box-shadow 0.2s;
         }
+        .feature-item:hover .feature-dot { transform: scale(1.4); box-shadow: 0 0 6px rgba(37,99,235,0.5); }
         .project-link {
           display: inline-flex;
           align-items: center;
@@ -173,11 +236,25 @@ function Projects() {
           transition: all 0.3s ease;
           width: fit-content;
           margin-top: 8px;
+          position: relative;
+          overflow: hidden;
         }
+        .project-link::before {
+          content: '';
+          position: absolute;
+          inset: 0;
+          background: linear-gradient(90deg, transparent, rgba(37,99,235,0.15), transparent);
+          background-size: 200%;
+          animation: shimmer 2.5s linear infinite;
+          opacity: 0;
+          transition: opacity 0.3s;
+        }
+        .project-link:hover::before { opacity: 1; }
         .project-link:hover {
           background: rgba(37,99,235,0.25);
           color: #fff;
           transform: translateX(4px);
+          border-color: rgba(37,99,235,0.5);
         }
 
         /* EXPERIENCE */
@@ -198,13 +275,33 @@ function Projects() {
           border: 1px solid var(--border);
           border-radius: 16px;
           transition: all 0.3s ease;
+          position: relative;
+          overflow: hidden;
         }
+        .exp-card::after {
+          content: '';
+          position: absolute;
+          bottom: 0; left: 0; right: 0;
+          height: 2px;
+          background: linear-gradient(90deg, #2563eb, #06b6d4);
+          transform: scaleX(0);
+          transform-origin: left;
+          transition: transform 0.4s ease;
+        }
+        .exp-card:hover::after { transform: scaleX(1); }
         .exp-card:hover {
           border-color: rgba(37,99,235,0.25);
           background: rgba(37,99,235,0.04);
           transform: translateY(-4px);
+          box-shadow: 0 16px 32px rgba(0,0,0,0.2);
         }
-        .exp-icon { font-size: 24px; margin-bottom: 14px; display: block; }
+        .exp-icon {
+          font-size: 24px;
+          margin-bottom: 14px;
+          display: block;
+          transition: transform 0.3s;
+        }
+        .exp-card:hover .exp-icon { transform: scale(1.15) rotate(-5deg); }
         .exp-card h3 {
           font-family: 'Outfit', sans-serif;
           font-size: 16px;
@@ -238,6 +335,7 @@ function Projects() {
           top: 50%; left: 50%;
           transform: translate(-50%, -50%);
           pointer-events: none;
+          animation: glow1Pulse 6s ease-in-out infinite;
         }
         .cta-wrap h2 {
           font-family: 'Outfit', sans-serif;
@@ -271,7 +369,14 @@ function Projects() {
           transition: all 0.3s ease;
           display: inline-block;
           position: relative;
+          overflow: hidden;
         }
+        .btn-main::before {
+          content: ''; position: absolute; inset: 0;
+          background: linear-gradient(rgba(255,255,255,0.12), transparent);
+          opacity: 0; transition: opacity 0.3s;
+        }
+        .btn-main:hover::before { opacity: 1; }
         .btn-main:hover { transform: translateY(-3px); box-shadow: 0 12px 48px rgba(37,99,235,0.55); }
 
         /* FOOTER */
@@ -311,15 +416,29 @@ function Projects() {
           .project-card.featured { grid-column: span 1; grid-template-columns: 1fr; gap: 20px; }
           .exp-grid { grid-template-columns: 1fr; }
           .footer { padding: 24px 20px; justify-content: center; text-align: center; }
+          .project-card { padding: 24px 20px; }
+        }
+        @media (max-width: 480px) {
+          .page-hero { padding: 110px 16px 50px; }
+          .projects-section { padding: 50px 16px; }
+          .exp-section { padding: 50px 16px; }
+          .cta-wrap { padding: 50px 16px; }
+          .project-card { padding: 20px 16px; }
+          .project-card h3 { font-size: 18px; }
         }
       `}</style>
 
       <Navbar />
 
+      <Helmet>
+  <title>Projects | MDS Software Development Services</title>
+  <meta name="description" content="View MDS Software Development Services deployed projects including web apps, business systems, and e-commerce platforms built for real clients." />
+</Helmet>
+
       {/* PAGE HERO */}
       <section className="page-hero">
         <div className="page-hero-glow" />
-        <span className="section-tag">// our projects</span>
+        <span className="section-tag" style={{ animation: 'fadeUp 0.5s ease both' }}>// our projects</span>
         <h1 className="page-title">
           Work We're<br />
           <span>Proud Of</span>
@@ -332,14 +451,14 @@ function Projects() {
       {/* PROJECTS */}
       <div className="projects-section">
         <div className="projects-inner">
-          <span className="section-tag">// deployed projects</span>
-          <h2 style={{ fontFamily: "'Outfit',sans-serif", fontSize: 'clamp(24px,2.5vw,36px)', fontWeight: 800, letterSpacing: '-0.03em' }}>
+          <span className="section-tag reveal">// deployed projects</span>
+          <h2 className="reveal" style={{ fontFamily: "'Outfit',sans-serif", fontSize: 'clamp(24px,2.5vw,36px)', fontWeight: 800, letterSpacing: '-0.03em' }}>
             Live & <span style={{ color: '#60a5fa' }}>Deployed</span>
           </h2>
           <div className="projects-grid">
 
-            {/* Featured - Romance Travel */}
-            <div className="project-card featured">
+            {/* Featured */}
+            <div className="project-card featured reveal">
               <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                 <span className="project-type">✈️ Client Project</span>
                 <h3>Romance Travel Group</h3>
@@ -359,61 +478,46 @@ function Projects() {
               </div>
             </div>
 
-            {/* ARM Solution */}
-            <div className="project-card">
+            {/* ARM */}
+            <div className="project-card reveal reveal-d1">
               <span className="project-type">🏢 Client Project</span>
               <h3>ARM Solution Enterprises</h3>
               <p>A corporate business website developed to establish online presence and showcase services, company profile, and contact information.</p>
               <div className="project-features">
                 <h4>Key Features</h4>
                 {['Corporate design', 'Company profile', 'Service showcase', 'Contact forms', 'SEO-friendly'].map((f, i) => (
-                  <div className="feature-item" key={i}>
-                    <div className="feature-dot" />
-                    {f}
-                  </div>
+                  <div className="feature-item" key={i}><div className="feature-dot" />{f}</div>
                 ))}
               </div>
-              <a href="https://armsolutionenterprises.com/" target="_blank" rel="noreferrer" className="project-link">
-                Visit Live Site →
-              </a>
+              <a href="https://armsolutionenterprises.com/" target="_blank" rel="noreferrer" className="project-link">Visit Live Site →</a>
             </div>
 
-            {/* Bloodline Tracker */}
-            <div className="project-card">
+            {/* Bloodline */}
+            <div className="project-card reveal reveal-d2">
               <span className="project-type">🔬 Personal Project</span>
               <h3>Bloodline Tracker System</h3>
               <p>A web-based management system for tracking and monitoring bloodlines and breeding records with a modern, user-friendly interface.</p>
               <div className="project-features">
                 <h4>Key Features</h4>
                 {['Bloodline record management', 'Structured data tracking', 'Secure web-based access', 'Responsive design'].map((f, i) => (
-                  <div className="feature-item" key={i}>
-                    <div className="feature-dot" />
-                    {f}
-                  </div>
+                  <div className="feature-item" key={i}><div className="feature-dot" />{f}</div>
                 ))}
               </div>
-              <a href="https://default-bloodline-tracker.web.app/" target="_blank" rel="noreferrer" className="project-link">
-                Visit Live Site →
-              </a>
+              <a href="https://default-bloodline-tracker.web.app/" target="_blank" rel="noreferrer" className="project-link">Visit Live Site →</a>
             </div>
 
             {/* E-Commerce */}
-            <div className="project-card">
+            <div className="project-card reveal reveal-d1">
               <span className="project-type">🛒 Personal Project</span>
               <h3>E-Commerce Web Application</h3>
               <p>A fully functional e-commerce platform supporting online product selling, digital transactions, and an organized user experience.</p>
               <div className="project-features">
                 <h4>Key Features</h4>
                 {['Product catalog', 'Shopping cart system', 'User-friendly UI', 'Responsive design', 'Scalable structure'].map((f, i) => (
-                  <div className="feature-item" key={i}>
-                    <div className="feature-dot" />
-                    {f}
-                  </div>
+                  <div className="feature-item" key={i}><div className="feature-dot" />{f}</div>
                 ))}
               </div>
-              <a href="https://default-e-commerce-shop.web.app/" target="_blank" rel="noreferrer" className="project-link">
-                Visit Live Site →
-              </a>
+              <a href="https://default-e-commerce-shop.web.app/" target="_blank" rel="noreferrer" className="project-link">Visit Live Site →</a>
             </div>
 
           </div>
@@ -422,8 +526,8 @@ function Projects() {
 
       {/* EXPERIENCE HIGHLIGHTS */}
       <div className="exp-section">
-        <span className="section-tag">// expertise</span>
-        <h2 style={{ fontFamily: "'Outfit',sans-serif", fontSize: 'clamp(24px,2.5vw,36px)', fontWeight: 800, letterSpacing: '-0.03em' }}>
+        <span className="section-tag reveal">// expertise</span>
+        <h2 className="reveal" style={{ fontFamily: "'Outfit',sans-serif", fontSize: 'clamp(24px,2.5vw,36px)', fontWeight: 800, letterSpacing: '-0.03em' }}>
           What We've <span style={{ color: '#60a5fa' }}>Mastered</span>
         </h2>
         <div className="exp-grid">
@@ -435,7 +539,7 @@ function Projects() {
             { icon: '🚀', title: 'System Deployment', desc: 'Professional deployment and configuration for live production use.' },
             { icon: '🛠️', title: 'Maintenance & Support', desc: 'Ongoing system support and continuous improvements post-launch.' },
           ].map((e, i) => (
-            <div className="exp-card" key={i}>
+            <div className={`exp-card reveal reveal-d${(i % 3) + 1}`} key={i}>
               <span className="exp-icon">{e.icon}</span>
               <h3>{e.title}</h3>
               <p>{e.desc}</p>
@@ -447,9 +551,9 @@ function Projects() {
       {/* CTA */}
       <div className="cta-wrap">
         <div className="cta-glow" />
-        <h2>Want Us to Build<br /><span style={{ color: '#60a5fa' }}>Your Project?</span></h2>
-        <p>Let's create something amazing together. Reach out and let's get started.</p>
-        <Link to="/contact" className="btn-main">Start Your Project →</Link>
+        <h2 className="reveal">Want Us to Build<br /><span style={{ color: '#60a5fa' }}>Your Project?</span></h2>
+        <p className="reveal reveal-d1">Let's create something amazing together. Reach out and let's get started.</p>
+        <Link to="/contact" className="btn-main reveal reveal-d2">Start Your Project →</Link>
       </div>
 
       {/* FOOTER */}

@@ -1,8 +1,19 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import Navbar from '../components/Navbar';
 import { Link } from 'react-router-dom';
+import { Helmet } from 'react-helmet-async';
 
 function Services() {
+  useEffect(() => {
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(e => {
+        if (e.isIntersecting) e.target.classList.add('visible');
+      });
+    }, { threshold: 0.1 });
+    document.querySelectorAll('.reveal, .reveal-left').forEach(el => observer.observe(el));
+    return () => observer.disconnect();
+  }, []);
+
   return (
     <div style={{ background: '#040610', minHeight: '100vh', color: '#fff', overflowX: 'hidden' }}>
       <style>{`
@@ -19,6 +30,40 @@ function Services() {
 
         .services * { box-sizing: border-box; margin: 0; padding: 0; }
 
+        /* ── KEYFRAMES ── */
+        @keyframes fadeUp {
+          from { opacity: 0; transform: translateY(24px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes glow1Pulse {
+          0%,100% { opacity: 0.6; transform: scale(1); }
+          50% { opacity: 1; transform: scale(1.08); }
+        }
+        @keyframes gradientShift {
+          0%,100% { background-position: 0% 50%; }
+          50% { background-position: 100% 50%; }
+        }
+
+        /* ── SCROLL REVEAL ── */
+        .reveal {
+          opacity: 0;
+          transform: translateY(28px);
+          transition: opacity 0.65s cubic-bezier(0.4,0,0.2,1), transform 0.65s cubic-bezier(0.4,0,0.2,1);
+        }
+        .reveal.visible { opacity: 1; transform: translateY(0); }
+        .reveal-d1 { transition-delay: 0.1s; }
+        .reveal-d2 { transition-delay: 0.2s; }
+        .reveal-d3 { transition-delay: 0.3s; }
+        .reveal-d4 { transition-delay: 0.4s; }
+        .reveal-d5 { transition-delay: 0.5s; }
+        /* slide-in from left for service rows */
+        .reveal-left {
+          opacity: 0;
+          transform: translateX(-24px);
+          transition: opacity 0.6s cubic-bezier(0.4,0,0.2,1), transform 0.6s cubic-bezier(0.4,0,0.2,1);
+        }
+        .reveal-left.visible { opacity: 1; transform: translateX(0); }
+
         .page-hero {
           padding: 160px 40px 80px;
           max-width: 1280px;
@@ -32,6 +77,7 @@ function Services() {
           background: radial-gradient(circle, rgba(37,99,235,0.1) 0%, transparent 70%);
           top: 0; right: 0;
           pointer-events: none;
+          animation: glow1Pulse 6s ease-in-out infinite;
         }
         .section-tag {
           font-family: 'JetBrains Mono', monospace;
@@ -49,12 +95,15 @@ function Services() {
           letter-spacing: -0.04em;
           line-height: 1.05;
           margin-bottom: 24px;
+          animation: fadeUp 0.65s ease 0.05s both;
         }
         .page-title span {
-          background: linear-gradient(135deg, #2563eb, #06b6d4);
+          background: linear-gradient(135deg, #2563eb, #06b6d4, #22d3ee, #06b6d4, #2563eb);
+          background-size: 300%;
           -webkit-background-clip: text;
           -webkit-text-fill-color: transparent;
           background-clip: text;
+          animation: gradientShift 5s ease infinite;
         }
         .page-desc {
           font-family: 'Outfit', sans-serif;
@@ -63,6 +112,7 @@ function Services() {
           max-width: 600px;
           line-height: 1.8;
           font-weight: 400;
+          animation: fadeUp 0.65s ease 0.15s both;
         }
 
         /* MAIN SERVICES */
@@ -88,13 +138,25 @@ function Services() {
           background: rgba(255,255,255,0.02);
           border: 1px solid var(--border);
           border-radius: 14px;
-          transition: all 0.3s ease;
+          transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
           cursor: default;
+          position: relative;
+          overflow: hidden;
         }
+        .service-row::before {
+          content: '';
+          position: absolute;
+          left: 0; top: 0; bottom: 0;
+          width: 2px;
+          background: linear-gradient(to bottom, #2563eb, #06b6d4);
+          opacity: 0;
+          transition: opacity 0.3s;
+        }
+        .service-row:hover::before { opacity: 1; }
         .service-row:hover {
           background: rgba(37,99,235,0.06);
           border-color: rgba(37,99,235,0.25);
-          transform: translateX(6px);
+          transform: translateX(8px);
         }
         .service-row-num {
           font-family: 'JetBrains Mono', monospace;
@@ -130,8 +192,14 @@ function Services() {
           font-size: 11px;
           color: #60a5fa;
           letter-spacing: 0.05em;
+          transition: all 0.2s;
         }
-        .service-row-icon { font-size: 28px; }
+        .service-row:hover .tag { background: rgba(37,99,235,0.15); border-color: rgba(37,99,235,0.35); }
+        .service-row-icon {
+          font-size: 28px;
+          transition: transform 0.3s ease;
+        }
+        .service-row:hover .service-row-icon { transform: scale(1.2) rotate(-8deg); }
 
         /* TECH STACK */
         .tech-section {
@@ -152,18 +220,22 @@ function Services() {
           border-radius: 12px;
           text-align: center;
           transition: all 0.3s ease;
+          cursor: default;
         }
         .tech-card:hover {
           border-color: rgba(37,99,235,0.3);
           background: rgba(37,99,235,0.05);
-          transform: translateY(-3px);
+          transform: translateY(-4px);
+          box-shadow: 0 12px 24px rgba(0,0,0,0.2), 0 0 0 1px rgba(37,99,235,0.1);
         }
         .tech-card span {
           font-family: 'Outfit', sans-serif;
           font-size: 14px;
           font-weight: 600;
           color: rgba(255,255,255,0.7);
+          transition: color 0.2s;
         }
+        .tech-card:hover span { color: rgba(255,255,255,0.95); }
 
         /* PROCESS */
         .process-section {
@@ -185,11 +257,25 @@ function Services() {
           border: 1px solid var(--border);
           border-radius: 16px;
           transition: all 0.3s ease;
+          position: relative;
+          overflow: hidden;
         }
+        .process-card::after {
+          content: '';
+          position: absolute;
+          top: 0; left: 0; right: 0;
+          height: 2px;
+          background: linear-gradient(90deg, #2563eb, #06b6d4);
+          transform: scaleX(0);
+          transform-origin: left;
+          transition: transform 0.4s ease;
+        }
+        .process-card:hover::after { transform: scaleX(1); }
         .process-card:hover {
           border-color: rgba(37,99,235,0.25);
           background: rgba(37,99,235,0.04);
           transform: translateY(-4px);
+          box-shadow: 0 16px 32px rgba(0,0,0,0.2);
         }
         .process-step {
           font-family: 'JetBrains Mono', monospace;
@@ -229,6 +315,7 @@ function Services() {
           top: 50%; left: 50%;
           transform: translate(-50%, -50%);
           pointer-events: none;
+          animation: glow1Pulse 6s ease-in-out infinite;
         }
         .cta-wrap h2 {
           font-family: 'Outfit', sans-serif;
@@ -262,7 +349,14 @@ function Services() {
           transition: all 0.3s ease;
           display: inline-block;
           position: relative;
+          overflow: hidden;
         }
+        .btn-main::before {
+          content: ''; position: absolute; inset: 0;
+          background: linear-gradient(rgba(255,255,255,0.12), transparent);
+          opacity: 0; transition: opacity 0.3s;
+        }
+        .btn-main:hover::before { opacity: 1; }
         .btn-main:hover { transform: translateY(-3px); box-shadow: 0 12px 48px rgba(37,99,235,0.55); }
 
         /* FOOTER */
@@ -298,20 +392,34 @@ function Services() {
           .service-row-tags, .service-row-icon { display: none; }
         }
         @media (max-width: 768px) {
-          .page-hero, .tech-section, .cta-wrap { padding: 120px 20px 60px; }
+          .page-hero { padding: 120px 20px 60px; }
           .main-services, .process-section { padding: 60px 20px; }
+          .tech-section, .cta-wrap { padding: 60px 20px; }
           .tech-grid { grid-template-columns: repeat(2, 1fr); }
           .process-grid { grid-template-columns: 1fr; }
           .footer { padding: 24px 20px; justify-content: center; text-align: center; }
+          .service-row { padding: 20px 16px; gap: 16px; }
+        }
+        @media (max-width: 480px) {
+          .page-hero { padding: 110px 16px 50px; }
+          .tech-grid { grid-template-columns: repeat(2, 1fr); }
+          .service-row { padding: 18px 14px; }
+          .service-row-main h3 { font-size: 15px; }
+          .cta-wrap { padding: 50px 16px; }
         }
       `}</style>
 
       <Navbar />
 
+      <Helmet>
+  <title>Services | MDS Software Development Services</title>
+  <meta name="description" content="Explore MDS services including web development, mobile apps, custom software, UI/UX design, database management, and automation solutions." />
+</Helmet>
+
       {/* PAGE HERO */}
       <section className="page-hero">
         <div className="page-hero-glow" />
-        <span className="section-tag">// our services</span>
+        <span className="section-tag" style={{ animation: 'fadeUp 0.5s ease both' }}>// our services</span>
         <h1 className="page-title">
           What We Build &<br />
           <span>How We Do It</span>
@@ -324,8 +432,8 @@ function Services() {
       {/* SERVICES LIST */}
       <div className="main-services">
         <div className="main-services-inner">
-          <span className="section-tag">// service offerings</span>
-          <h2 style={{ fontFamily: "'Outfit',sans-serif", fontSize: 'clamp(24px,2.5vw,36px)', fontWeight: 800, letterSpacing: '-0.03em' }}>
+          <span className="section-tag reveal">// service offerings</span>
+          <h2 className="reveal" style={{ fontFamily: "'Outfit',sans-serif", fontSize: 'clamp(24px,2.5vw,36px)', fontWeight: 800, letterSpacing: '-0.03em' }}>
             Everything You Need to <span style={{ color: '#60a5fa' }}>Go Digital</span>
           </h2>
           <div className="services-list">
@@ -340,7 +448,7 @@ function Services() {
               { num: '08', icon: '🗄️', title: 'Database Design & Management', desc: 'Structured, secure, and optimized database solutions.', tags: ['MySQL', 'MongoDB', 'SQL Server'] },
               { num: '09', icon: '🤖', title: 'Automation & Digital Workflow', desc: 'Smart automation to boost efficiency and reduce manual work.', tags: ['Automation', 'REST API', 'Integration'] },
             ].map((s, i) => (
-              <div className="service-row" key={i}>
+              <div className={`service-row reveal-left`} key={i} style={{ transitionDelay: `${i * 0.07}s` }}>
                 <div className="service-row-num">{s.num}</div>
                 <div className="service-row-main">
                   <h3>{s.title}</h3>
@@ -358,13 +466,13 @@ function Services() {
 
       {/* TECH STACK */}
       <div className="tech-section">
-        <span className="section-tag">// technologies</span>
-        <h2 style={{ fontFamily: "'Outfit',sans-serif", fontSize: 'clamp(24px,2.5vw,36px)', fontWeight: 800, letterSpacing: '-0.03em' }}>
+        <span className="section-tag reveal">// technologies</span>
+        <h2 className="reveal" style={{ fontFamily: "'Outfit',sans-serif", fontSize: 'clamp(24px,2.5vw,36px)', fontWeight: 800, letterSpacing: '-0.03em' }}>
           Tools & Technologies <span style={{ color: '#60a5fa' }}>We Use</span>
         </h2>
         <div className="tech-grid">
-          {['HTML/CSS', 'JavaScript', 'React.js', 'Angular', 'Express.js', 'Node.js', 'PHP', '.NET', 'MongoDB', 'MySQL', 'SQL Server', 'Firebase', 'Bootstrap', 'REST API', 'Unity'].map(t => (
-            <div className="tech-card" key={t}>
+          {['HTML/CSS', 'JavaScript', 'React.js', 'Angular', 'Express.js', 'Node.js', 'PHP', '.NET', 'MongoDB', 'MySQL', 'SQL Server', 'Firebase', 'Bootstrap', 'REST API', 'Unity'].map((t, i) => (
+            <div className={`tech-card reveal`} key={t} style={{ transitionDelay: `${(i % 5) * 0.08}s` }}>
               <span>{t}</span>
             </div>
           ))}
@@ -374,8 +482,8 @@ function Services() {
       {/* PROCESS */}
       <div className="process-section">
         <div className="process-inner">
-          <span className="section-tag">// our process</span>
-          <h2 style={{ fontFamily: "'Outfit',sans-serif", fontSize: 'clamp(24px,2.5vw,36px)', fontWeight: 800, letterSpacing: '-0.03em' }}>
+          <span className="section-tag reveal">// our process</span>
+          <h2 className="reveal" style={{ fontFamily: "'Outfit',sans-serif", fontSize: 'clamp(24px,2.5vw,36px)', fontWeight: 800, letterSpacing: '-0.03em' }}>
             How We <span style={{ color: '#60a5fa' }}>Deliver</span>
           </h2>
           <div className="process-grid">
@@ -387,7 +495,7 @@ function Services() {
               { step: 'Step 05', title: 'Deployment', desc: 'We install and configure the system for live usage with zero disruption to your operations.' },
               { step: 'Step 06', title: 'Maintenance & Support', desc: 'We provide continuous support, updates, and system improvements long after launch.' },
             ].map((p, i) => (
-              <div className="process-card" key={i}>
+              <div className={`process-card reveal reveal-d${(i % 3) + 1}`} key={i}>
                 <div className="process-step">{p.step}</div>
                 <h3>{p.title}</h3>
                 <p>{p.desc}</p>
@@ -400,9 +508,9 @@ function Services() {
       {/* CTA */}
       <div className="cta-wrap">
         <div className="cta-glow" />
-        <h2>Need a Custom<br /><span style={{ color: '#60a5fa' }}>Solution?</span></h2>
-        <p>Tell us about your project and we'll put together the perfect plan for you.</p>
-        <Link to="/contact" className="btn-main">Start Your Project →</Link>
+        <h2 className="reveal">Need a Custom<br /><span style={{ color: '#60a5fa' }}>Solution?</span></h2>
+        <p className="reveal reveal-d1">Tell us about your project and we'll put together the perfect plan for you.</p>
+        <Link to="/contact" className="btn-main reveal reveal-d2">Start Your Project →</Link>
       </div>
 
       {/* FOOTER */}

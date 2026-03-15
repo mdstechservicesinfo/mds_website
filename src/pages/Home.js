@@ -1,8 +1,53 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import Navbar from '../components/Navbar';
+import { Helmet } from 'react-helmet-async';
 
 function Home() {
+  const statsRef = useRef(null);
+  const countersStarted = useRef(false);
+
+  useEffect(() => {
+    // Scroll reveal
+    const revealEls = document.querySelectorAll('.reveal');
+    const revealObserver = new IntersectionObserver((entries) => {
+      entries.forEach(e => {
+        if (e.isIntersecting) {
+          e.target.classList.add('visible');
+        }
+      });
+    }, { threshold: 0.12 });
+    revealEls.forEach(el => revealObserver.observe(el));
+
+    // Counter animation
+    const counterObserver = new IntersectionObserver((entries) => {
+      entries.forEach(e => {
+        if (e.isIntersecting && !countersStarted.current) {
+          countersStarted.current = true;
+          document.querySelectorAll('[data-count]').forEach(el => {
+            const target = parseFloat(el.dataset.count);
+            const isPercent = el.dataset.suffix === '%';
+            const duration = 1800;
+            const start = performance.now();
+            const update = (now) => {
+              const progress = Math.min((now - start) / duration, 1);
+              const eased = 1 - Math.pow(1 - progress, 3);
+              el.textContent = Math.round(eased * target) + (el.dataset.suffix || '');
+              if (progress < 1) requestAnimationFrame(update);
+            };
+            requestAnimationFrame(update);
+          });
+        }
+      });
+    }, { threshold: 0.3 });
+    if (statsRef.current) counterObserver.observe(statsRef.current);
+
+    return () => {
+      revealObserver.disconnect();
+      counterObserver.disconnect();
+    };
+  }, []);
+
   return (
     <div style={{ background: '#040610', minHeight: '100vh', color: '#fff', overflowX: 'hidden' }}>
       <style>{`
@@ -18,6 +63,48 @@ function Home() {
         }
 
         .home * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        /* ── KEYFRAMES ── */
+        @keyframes fadeUp {
+          from { opacity: 0; transform: translateY(24px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes blink { 0%,100%{opacity:1;} 50%{opacity:0.2;} }
+        @keyframes gridPan {
+          0% { background-position: 0 0; }
+          100% { background-position: 48px 48px; }
+        }
+        @keyframes glow1Pulse {
+          0%,100% { opacity: 0.7; transform: translateX(-50%) scale(1); }
+          50% { opacity: 1; transform: translateX(-50%) scale(1.08); }
+        }
+        @keyframes glow2Pulse {
+          0%,100% { opacity: 0.5; }
+          50% { opacity: 0.9; }
+        }
+        @keyframes particleFloat {
+          0% { transform: translateY(100vh); opacity: 0; }
+          10% { opacity: 0.6; }
+          90% { opacity: 0.2; }
+          100% { transform: translateY(-100px); opacity: 0; }
+        }
+        @keyframes gradientShift {
+          0%,100% { background-position: 0% 50%; }
+          50% { background-position: 100% 50%; }
+        }
+
+        /* ── SCROLL REVEAL ── */
+        .reveal {
+          opacity: 0;
+          transform: translateY(28px);
+          transition: opacity 0.65s cubic-bezier(0.4,0,0.2,1), transform 0.65s cubic-bezier(0.4,0,0.2,1);
+        }
+        .reveal.visible { opacity: 1; transform: translateY(0); }
+        .reveal-d1 { transition-delay: 0.1s; }
+        .reveal-d2 { transition-delay: 0.2s; }
+        .reveal-d3 { transition-delay: 0.3s; }
+        .reveal-d4 { transition-delay: 0.4s; }
+        .reveal-d5 { transition-delay: 0.5s; }
 
         /* HERO */
         .hero {
@@ -38,6 +125,7 @@ function Home() {
           top: -100px; left: 50%;
           transform: translateX(-50%);
           pointer-events: none;
+          animation: glow1Pulse 6s ease-in-out infinite;
         }
         .hero-glow-2 {
           position: absolute;
@@ -46,6 +134,7 @@ function Home() {
           background: radial-gradient(circle, rgba(6,182,212,0.08) 0%, transparent 70%);
           bottom: 0; right: 10%;
           pointer-events: none;
+          animation: glow2Pulse 8s ease-in-out infinite;
         }
         .hero-grid {
           position: absolute; inset: 0;
@@ -55,7 +144,17 @@ function Home() {
           background-size: 48px 48px;
           mask-image: radial-gradient(ellipse 100% 100% at 50% 0%, black 30%, transparent 80%);
           pointer-events: none;
+          animation: gridPan 18s linear infinite;
         }
+        /* Floating particles */
+        .hero-particles { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+        .hero-particle {
+          position: absolute;
+          border-radius: 50%;
+          background: rgba(37,99,235,0.5);
+          animation: particleFloat linear infinite;
+        }
+
         .hero-content { position: relative; z-index: 1; max-width: 860px; }
         .hero-eyebrow {
           display: inline-flex;
@@ -79,8 +178,6 @@ function Home() {
           border-radius: 50%;
           animation: blink 2s ease infinite;
         }
-        @keyframes blink { 0%,100%{opacity:1;} 50%{opacity:0.2;} }
-        @keyframes fadeUp { from{opacity:0;transform:translateY(24px);} to{opacity:1;transform:translateY(0);} }
 
         .hero-title {
           font-family: 'Outfit', sans-serif;
@@ -93,10 +190,12 @@ function Home() {
           animation: fadeUp 0.6s ease 0.1s both;
         }
         .hero-title .line2 {
-          background: linear-gradient(90deg, #2563eb, #06b6d4);
+          background: linear-gradient(90deg, #2563eb, #06b6d4, #22d3ee, #06b6d4, #2563eb);
+          background-size: 300%;
           -webkit-background-clip: text;
           -webkit-text-fill-color: transparent;
           background-clip: text;
+          animation: gradientShift 5s ease infinite;
         }
         .hero-desc {
           font-family: 'Outfit', sans-serif;
@@ -127,7 +226,18 @@ function Home() {
           box-shadow: 0 8px 32px rgba(37,99,235,0.35);
           transition: all 0.3s ease;
           letter-spacing: -0.01em;
+          position: relative;
+          overflow: hidden;
         }
+        .btn-main::before {
+          content: '';
+          position: absolute;
+          inset: 0;
+          background: linear-gradient(rgba(255,255,255,0.12), transparent);
+          opacity: 0;
+          transition: opacity 0.3s;
+        }
+        .btn-main:hover::before { opacity: 1; }
         .btn-main:hover { transform: translateY(-3px); box-shadow: 0 12px 48px rgba(37,99,235,0.55); }
         .btn-ghost {
           padding: 14px 32px;
@@ -175,9 +285,16 @@ function Home() {
           font-family: 'JetBrains Mono', monospace;
           font-size: 12px;
           color: rgba(255,255,255,0.5);
-          transition: all 0.2s ease;
+          transition: all 0.25s ease;
+          cursor: default;
         }
-        .tech-pill:hover { border-color: rgba(37,99,235,0.3); color: rgba(255,255,255,0.8); }
+        .tech-pill:hover {
+          border-color: rgba(37,99,235,0.4);
+          color: rgba(255,255,255,0.85);
+          background: rgba(37,99,235,0.08);
+          transform: translateY(-2px);
+          box-shadow: 0 4px 16px rgba(37,99,235,0.15);
+        }
 
         /* STATS */
         .stats {
@@ -196,10 +313,11 @@ function Home() {
           border: 1px solid var(--border);
           text-align: center;
           transition: all 0.3s ease;
+          cursor: default;
         }
         .stat-box:first-child { border-radius: 20px 0 0 20px; }
         .stat-box:last-child { border-radius: 0 20px 20px 0; }
-        .stat-box:hover { background: rgba(37,99,235,0.07); }
+        .stat-box:hover { background: rgba(37,99,235,0.07); transform: translateY(-3px); }
         .stat-num {
           font-family: 'Outfit', sans-serif;
           font-size: clamp(36px, 4vw, 52px);
@@ -261,13 +379,26 @@ function Home() {
           background: rgba(255,255,255,0.02);
           border: 1px solid var(--border);
           border-radius: 16px;
-          transition: all 0.3s ease;
+          transition: all 0.35s cubic-bezier(0.4,0,0.2,1);
           cursor: default;
+          position: relative;
+          overflow: hidden;
         }
+        .svc-card::before {
+          content: '';
+          position: absolute;
+          top: 0; left: 0; right: 0;
+          height: 1px;
+          background: linear-gradient(90deg, transparent, rgba(37,99,235,0.6), rgba(6,182,212,0.6), transparent);
+          opacity: 0;
+          transition: opacity 0.4s;
+        }
+        .svc-card:hover::before { opacity: 1; }
         .svc-card:hover {
           border-color: rgba(37,99,235,0.35);
           background: rgba(37,99,235,0.05);
-          transform: translateY(-4px);
+          transform: translateY(-6px);
+          box-shadow: 0 20px 40px rgba(0,0,0,0.3), 0 0 0 1px rgba(37,99,235,0.1);
         }
         .svc-num {
           font-family: 'JetBrains Mono', monospace;
@@ -280,7 +411,9 @@ function Home() {
           font-size: 28px;
           margin-bottom: 16px;
           display: block;
+          transition: transform 0.3s ease;
         }
+        .svc-card:hover .svc-icon { transform: scale(1.15) rotate(-5deg); }
         .svc-card h3 {
           font-family: 'Outfit', sans-serif;
           font-size: 17px;
@@ -332,7 +465,9 @@ function Home() {
           font-size: 14px;
           color: rgba(255,255,255,0.65);
           line-height: 1.5;
+          transition: color 0.2s;
         }
+        .check-list li:hover { color: rgba(255,255,255,0.9); }
         .check-icon {
           width: 20px; height: 20px;
           background: linear-gradient(135deg, #2563eb, #06b6d4);
@@ -341,7 +476,9 @@ function Home() {
           font-size: 10px;
           flex-shrink: 0;
           margin-top: 2px;
+          transition: transform 0.2s, box-shadow 0.2s;
         }
+        .check-list li:hover .check-icon { transform: scale(1.1); box-shadow: 0 0 10px rgba(37,99,235,0.4); }
         .why-cards {
           display: grid;
           grid-template-columns: 1fr 1fr;
@@ -353,9 +490,10 @@ function Home() {
           border: 1px solid var(--border);
           border-radius: 14px;
           transition: all 0.3s ease;
+          cursor: default;
         }
         .why-card.span2 { grid-column: span 2; }
-        .why-card:hover { border-color: rgba(37,99,235,0.25); background: rgba(37,99,235,0.04); }
+        .why-card:hover { border-color: rgba(37,99,235,0.25); background: rgba(37,99,235,0.04); transform: translateY(-3px); }
         .why-card h4 {
           font-family: 'Outfit', sans-serif;
           font-size: 14px;
@@ -389,6 +527,7 @@ function Home() {
           top: 50%; left: 50%;
           transform: translate(-50%, -50%);
           pointer-events: none;
+          animation: glow2Pulse 6s ease-in-out infinite;
         }
         .cta-wrap h2 {
           font-family: 'Outfit', sans-serif;
@@ -454,20 +593,33 @@ function Home() {
           .stat-box { padding: 28px 20px; }
           .footer { justify-content: center; text-align: center; }
           .trusted-inner { gap: 10px; }
+          .hero-glow-1 { width: 400px; height: 400px; }
+          .hero-glow-2 { width: 200px; height: 200px; }
         }
         @media (max-width: 480px) {
           .hero-actions { flex-direction: column; align-items: center; }
           .btn-main, .btn-ghost { width: 100%; max-width: 280px; text-align: center; }
+          .services-wrap { padding: 60px 16px; }
+          .why-wrap { padding: 60px 16px; }
+          .cta-wrap { padding: 60px 16px; }
+          .stat-box { padding: 24px 16px; }
         }
       `}</style>
 
       <Navbar />
+
+      <Helmet>
+  <title>MDS Software Development Services | Innovation. Code. Solutions.</title>
+  <meta name="description" content="MDS Software Development Services designs and builds high-quality web, mobile, and custom software solutions for businesses across the Philippines and beyond." />
+</Helmet>
 
       {/* HERO */}
       <section className="hero">
         <div className="hero-glow-1" />
         <div className="hero-glow-2" />
         <div className="hero-grid" />
+        {/* Particles rendered via JS in useEffect equivalent — inline for SSR safety */}
+        <div className="hero-particles" id="home-particles" />
         <div className="hero-content">
           <div className="hero-eyebrow">
             <span className="eyebrow-dot" />
@@ -498,16 +650,20 @@ function Home() {
       </div>
 
       {/* STATS */}
-      <div style={{ padding: '0 24px' }}>
+      <div style={{ padding: '0 24px' }} ref={statsRef}>
         <div className="stats">
           {[
-            { num: '9+', label: 'Services Offered' },
-            { num: '10+', label: 'Technologies' },
-            { num: '100%', label: 'Client Focused' },
-            { num: '24/7', label: 'Support' },
+            { num: '9+', label: 'Services Offered', count: '9', suffix: '+' },
+            { num: '10+', label: 'Technologies', count: '10', suffix: '+' },
+            { num: '100%', label: 'Client Focused', count: '100', suffix: '%' },
+            { num: '24/7', label: 'Support', count: null },
           ].map((s, i) => (
-            <div className="stat-box" key={i}>
-              <div className="stat-num">{s.num}</div>
+            <div className="stat-box reveal" key={i} style={{ transitionDelay: `${i * 0.1}s` }}>
+              <div className="stat-num">
+                {s.count ? (
+                  <span data-count={s.count} data-suffix={s.suffix}>0{s.suffix}</span>
+                ) : s.num}
+              </div>
               <div className="stat-label">{s.label}</div>
             </div>
           ))}
@@ -517,8 +673,8 @@ function Home() {
       {/* SERVICES */}
       <div className="services-wrap">
         <div className="services-inner">
-          <span className="section-tag">// what we do</span>
-          <h2 className="section-heading">Services Built for<br /><span>Modern Businesses</span></h2>
+          <span className="section-tag reveal">// what we do</span>
+          <h2 className="section-heading reveal">Services Built for<br /><span>Modern Businesses</span></h2>
           <div className="services-grid">
             {[
               { icon: '🌐', num: '01', title: 'Web App Development', desc: 'Modern, responsive web applications built with cutting-edge frameworks and best practices.' },
@@ -528,7 +684,7 @@ function Home() {
               { icon: '🗄️', num: '05', title: 'Database Management', desc: 'Structured, secure, and optimized database design, management, and administration.' },
               { icon: '🤖', num: '06', title: 'Automation Solutions', desc: 'Digital workflow automation that boosts efficiency and eliminates manual bottlenecks.' },
             ].map((s, i) => (
-              <div className="svc-card" key={i}>
+              <div className={`svc-card reveal reveal-d${(i % 3) + 1}`} key={i}>
                 <div className="svc-num">{s.num}</div>
                 <span className="svc-icon">{s.icon}</span>
                 <h3>{s.title}</h3>
@@ -542,7 +698,7 @@ function Home() {
       {/* WHY CHOOSE US */}
       <div style={{ background: 'var(--bg)' }}>
         <div className="why-wrap">
-          <div className="why-left">
+          <div className="why-left reveal">
             <span className="section-tag">// why mds</span>
             <h2>We Don't Just Build.<br /><span style={{ color: '#60a5fa' }}>We Partner.</span></h2>
             <p>Every project gets our full dedication — from first meeting to post-launch support. We treat your business goals as our own.</p>
@@ -559,7 +715,7 @@ function Home() {
               ))}
             </ul>
           </div>
-          <div className="why-cards">
+          <div className="why-cards reveal reveal-d2">
             {[
               { title: 'Founded with Purpose', desc: 'Built to help Philippine businesses modernize through reliable, innovative software.', span: true },
               { title: 'Full-Stack Team', desc: 'React, Node, Firebase, MongoDB, .NET and more.' },
@@ -578,9 +734,9 @@ function Home() {
       {/* CTA */}
       <div className="cta-wrap">
         <div className="cta-glow" />
-        <h2>Ready to Build Something<br /><span style={{ color: '#60a5fa' }}>Extraordinary?</span></h2>
-        <p>Let's turn your idea into a powerful digital product. We're ready when you are.</p>
-        <Link to="/contact" className="btn-main" style={{ position: 'relative', display: 'inline-block' }}>
+        <h2 className="reveal">Ready to Build Something<br /><span style={{ color: '#60a5fa' }}>Extraordinary?</span></h2>
+        <p className="reveal reveal-d1">Let's turn your idea into a powerful digital product. We're ready when you are.</p>
+        <Link to="/contact" className="btn-main reveal reveal-d2" style={{ position: 'relative', display: 'inline-block' }}>
           Start Your Project →
         </Link>
       </div>
@@ -594,6 +750,20 @@ function Home() {
           </div>
         </div>
       </footer>
+
+      <script dangerouslySetInnerHTML={{ __html: `
+        (function() {
+          var container = document.getElementById('home-particles');
+          if (!container) return;
+          for (var i = 0; i < 16; i++) {
+            var p = document.createElement('div');
+            p.className = 'hero-particle';
+            var size = Math.random() * 2.5 + 1;
+            p.style.cssText = 'width:' + size + 'px;height:' + size + 'px;left:' + (Math.random()*100) + '%;animation-duration:' + (Math.random()*12+8) + 's;animation-delay:' + (Math.random()*10) + 's;opacity:' + (Math.random()*0.4+0.1) + ';';
+            container.appendChild(p);
+          }
+        })();
+      `}} />
     </div>
   );
 }
