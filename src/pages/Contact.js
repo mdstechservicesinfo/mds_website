@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Navbar from '../components/Navbar';
 import { db } from '../firebase/config';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import emailjs from '@emailjs/browser';
+import { Helmet } from 'react-helmet-async';
 
-// ✅ Replace these 3 values with your actual EmailJS credentials
 const EMAILJS_SERVICE_ID = 'service_kporv3e';
 const EMAILJS_TEMPLATE_ID = 'template_gxllwch';
 const EMAILJS_PUBLIC_KEY = '1ya1P7Zs3dwMpoZ8k';
@@ -13,6 +13,16 @@ function Contact() {
   const [form, setForm] = useState({ name: '', email: '', subject: '', message: '' });
   const [status, setStatus] = useState('');
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(e => {
+        if (e.isIntersecting) e.target.classList.add('visible');
+      });
+    }, { threshold: 0.1 });
+    document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+    return () => observer.disconnect();
+  }, []);
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -29,18 +39,11 @@ function Contact() {
       timeStyle: 'short',
     });
 
-    // 1️⃣ Send email via EmailJS (primary — must succeed)
     try {
       await emailjs.send(
         EMAILJS_SERVICE_ID,
         EMAILJS_TEMPLATE_ID,
-        {
-          name: form.name,
-          email: form.email,
-          title: form.subject,
-          message: form.message,
-          time,
-        },
+        { name: form.name, email: form.email, title: form.subject, message: form.message, time },
         EMAILJS_PUBLIC_KEY
       );
     } catch (emailError) {
@@ -50,12 +53,8 @@ function Contact() {
       return;
     }
 
-    // 2️⃣ Save to Firestore (secondary — won't block success if it fails)
     try {
-      await addDoc(collection(db, 'contacts'), {
-        ...form,
-        createdAt: serverTimestamp(),
-      });
+      await addDoc(collection(db, 'contacts'), { ...form, createdAt: serverTimestamp() });
     } catch (firestoreError) {
       console.warn('Firestore save failed (email still sent):', firestoreError);
     }
@@ -81,6 +80,44 @@ function Contact() {
 
         .contact * { box-sizing: border-box; margin: 0; padding: 0; }
 
+        @keyframes fadeUp {
+          from { opacity: 0; transform: translateY(24px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes glow1Pulse {
+          0%,100% { opacity: 0.6; transform: scale(1); }
+          50% { opacity: 1; transform: scale(1.08); }
+        }
+        @keyframes gradientShift {
+          0%,100% { background-position: 0% 50%; }
+          50% { background-position: 100% 50%; }
+        }
+        @keyframes inputFocusPulse {
+          0% { box-shadow: 0 0 0 0 rgba(37,99,235,0.3); }
+          70% { box-shadow: 0 0 0 6px rgba(37,99,235,0); }
+          100% { box-shadow: 0 0 0 0 rgba(37,99,235,0); }
+        }
+        @keyframes successSlide {
+          from { opacity: 0; transform: translateY(-8px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes btnPulse {
+          0%,100% { box-shadow: 0 8px 32px rgba(37,99,235,0.35); }
+          50% { box-shadow: 0 8px 40px rgba(37,99,235,0.6); }
+        }
+
+        .reveal {
+          opacity: 0;
+          transform: translateY(28px);
+          transition: opacity 0.65s cubic-bezier(0.4,0,0.2,1), transform 0.65s cubic-bezier(0.4,0,0.2,1);
+        }
+        .reveal.visible { opacity: 1; transform: translateY(0); }
+        .reveal-d1 { transition-delay: 0.1s; }
+        .reveal-d2 { transition-delay: 0.2s; }
+        .reveal-d3 { transition-delay: 0.3s; }
+        .reveal-d4 { transition-delay: 0.4s; }
+        .reveal-d5 { transition-delay: 0.5s; }
+
         .page-hero {
           padding: 160px 40px 80px;
           max-width: 1280px;
@@ -94,6 +131,7 @@ function Contact() {
           background: radial-gradient(circle, rgba(37,99,235,0.1) 0%, transparent 70%);
           top: 0; right: 0;
           pointer-events: none;
+          animation: glow1Pulse 6s ease-in-out infinite;
         }
         .section-tag {
           font-family: 'JetBrains Mono', monospace;
@@ -111,12 +149,15 @@ function Contact() {
           letter-spacing: -0.04em;
           line-height: 1.05;
           margin-bottom: 24px;
+          animation: fadeUp 0.65s ease 0.05s both;
         }
         .page-title span {
-          background: linear-gradient(135deg, #2563eb, #06b6d4);
+          background: linear-gradient(135deg, #2563eb, #06b6d4, #22d3ee, #06b6d4, #2563eb);
+          background-size: 300%;
           -webkit-background-clip: text;
           -webkit-text-fill-color: transparent;
           background-clip: text;
+          animation: gradientShift 5s ease infinite;
         }
         .page-desc {
           font-family: 'Outfit', sans-serif;
@@ -125,9 +166,9 @@ function Contact() {
           max-width: 600px;
           line-height: 1.8;
           font-weight: 400;
+          animation: fadeUp 0.65s ease 0.15s both;
         }
 
-        /* CONTACT SECTION */
         .contact-section {
           padding: 80px 40px 100px;
           max-width: 1280px;
@@ -138,7 +179,6 @@ function Contact() {
           align-items: start;
         }
 
-        /* LEFT INFO */
         .contact-info { display: flex; flex-direction: column; gap: 24px; }
         .contact-info-title {
           font-family: 'Outfit', sans-serif;
@@ -168,6 +208,7 @@ function Contact() {
         .contact-detail:hover {
           border-color: rgba(37,99,235,0.25);
           background: rgba(37,99,235,0.04);
+          transform: translateX(4px);
         }
         .contact-detail-icon {
           width: 40px; height: 40px;
@@ -176,7 +217,9 @@ function Contact() {
           display: flex; align-items: center; justify-content: center;
           font-size: 18px;
           flex-shrink: 0;
+          transition: transform 0.3s ease;
         }
+        .contact-detail:hover .contact-detail-icon { transform: scale(1.1) rotate(-5deg); }
         .contact-detail-text h4 {
           font-family: 'JetBrains Mono', monospace;
           font-size: 11px;
@@ -192,13 +235,14 @@ function Contact() {
           font-weight: 400;
         }
 
-        /* FORM */
         .contact-form-wrap {
           padding: 40px;
           background: rgba(255,255,255,0.025);
           border: 1px solid var(--border);
           border-radius: 20px;
+          transition: border-color 0.3s ease;
         }
+        .contact-form-wrap:focus-within { border-color: rgba(37,99,235,0.2); }
         .form-title {
           font-family: 'Outfit', sans-serif;
           font-size: 20px;
@@ -242,13 +286,14 @@ function Contact() {
           font-size: 15px;
           color: #fff;
           outline: none;
-          transition: all 0.2s ease;
+          transition: all 0.25s ease;
           width: 100%;
         }
         .form-input::placeholder { color: rgba(255,255,255,0.25); }
         .form-input:focus {
           border-color: rgba(37,99,235,0.5);
           background: rgba(37,99,235,0.06);
+          animation: inputFocusPulse 0.5s ease;
         }
         .form-textarea {
           padding: 14px 16px;
@@ -259,7 +304,7 @@ function Contact() {
           font-size: 15px;
           color: #fff;
           outline: none;
-          transition: all 0.2s ease;
+          transition: all 0.25s ease;
           width: 100%;
           resize: vertical;
           min-height: 140px;
@@ -268,6 +313,7 @@ function Contact() {
         .form-textarea:focus {
           border-color: rgba(37,99,235,0.5);
           background: rgba(37,99,235,0.06);
+          animation: inputFocusPulse 0.5s ease;
         }
         .btn-submit {
           width: 100%;
@@ -283,10 +329,22 @@ function Contact() {
           box-shadow: 0 8px 32px rgba(37,99,235,0.35);
           transition: all 0.3s ease;
           margin-top: 8px;
+          position: relative;
+          overflow: hidden;
         }
-        .btn-submit:hover:not(:disabled) {
+        .btn-submit::before {
+          content: '';
+          position: absolute; inset: 0;
+          background: linear-gradient(rgba(255,255,255,0.12), transparent);
+          opacity: 0;
+          transition: opacity 0.3s;
+        }
+        .btn-submit:not(:disabled):hover::before { opacity: 1; }
+        .btn-submit:not(:disabled) { animation: btnPulse 3s ease-in-out infinite; }
+        .btn-submit:not(:disabled):hover {
           transform: translateY(-2px);
           box-shadow: 0 12px 48px rgba(37,99,235,0.55);
+          animation: none;
         }
         .btn-submit:disabled { opacity: 0.6; cursor: not-allowed; }
         .success-msg {
@@ -299,6 +357,7 @@ function Contact() {
           color: #4ade80;
           margin-top: 16px;
           text-align: center;
+          animation: successSlide 0.4s ease both;
         }
         .error-msg {
           padding: 16px 20px;
@@ -310,9 +369,9 @@ function Contact() {
           color: #f87171;
           margin-top: 16px;
           text-align: center;
+          animation: successSlide 0.4s ease both;
         }
 
-        /* FOOTER */
         .footer {
           padding: 32px 40px;
           border-top: 1px solid var(--border);
@@ -337,7 +396,6 @@ function Contact() {
         }
         .footer-right a { color: #60a5fa; text-decoration: none; }
 
-        /* RESPONSIVE */
         @media (max-width: 768px) {
           .page-hero { padding: 120px 20px 60px; }
           .contact-section { grid-template-columns: 1fr; padding: 60px 20px; gap: 40px; }
@@ -345,14 +403,25 @@ function Contact() {
           .contact-form-wrap { padding: 24px; }
           .footer { padding: 24px 20px; justify-content: center; text-align: center; }
         }
+        @media (max-width: 480px) {
+          .page-hero { padding: 110px 16px 50px; }
+          .contact-section { padding: 40px 16px; }
+          .contact-form-wrap { padding: 20px 16px; }
+          .form-input, .form-textarea { font-size: 14px; }
+        }
       `}</style>
 
       <Navbar />
+      <Helmet>
+        <title>Contact Us | MDS Software Development Services</title>
+        <meta name="description" content="Get in touch with MDS Software Development Services. Send us a message and we'll respond within 24 hours." />
+        <meta property="og:title" content="Contact Us | MDS Software Development Services" />
+        <meta property="og:url" content="https://mds-profile-website.web.app/contact" />
+      </Helmet>
 
-      {/* PAGE HERO */}
       <section className="page-hero">
         <div className="page-hero-glow" />
-        <span className="section-tag">// contact us</span>
+        <span className="section-tag" style={{ animation: 'fadeUp 0.5s ease both' }}>// contact us</span>
         <h1 className="page-title">
           Let's Build Something<br />
           <span>Together</span>
@@ -362,12 +431,9 @@ function Contact() {
         </p>
       </section>
 
-      {/* CONTACT */}
       <div className="contact-section">
-
-        {/* LEFT */}
         <div className="contact-info">
-          <div>
+          <div className="reveal">
             <h2 className="contact-info-title">Get In Touch</h2>
             <p className="contact-info-desc">We're always open to discussing new projects, creative ideas, or opportunities to be part of your vision.</p>
           </div>
@@ -378,7 +444,7 @@ function Contact() {
             { icon: '👤', label: 'Founder', value: 'Arem Jay Mendoza' },
             { icon: '⏰', label: 'Response Time', value: 'Within 24 hours' },
           ].map((d, i) => (
-            <div className="contact-detail" key={i}>
+            <div className={`contact-detail reveal reveal-d${Math.min(i + 1, 5)}`} key={i}>
               <div className="contact-detail-icon">{d.icon}</div>
               <div className="contact-detail-text">
                 <h4>{d.label}</h4>
@@ -388,85 +454,44 @@ function Contact() {
           ))}
         </div>
 
-        {/* FORM */}
-        <div className="contact-form-wrap">
+        <div className="contact-form-wrap reveal reveal-d2">
           <h3 className="form-title">Send Us a Message</h3>
           <p className="form-subtitle">Fill out the form below and we'll respond within 24 hours.</p>
 
           <div className="form-row">
             <div className="form-group">
               <label>Your Name</label>
-              <input
-                className="form-input"
-                type="text"
-                name="name"
-                placeholder="Juan dela Cruz"
-                value={form.name}
-                onChange={handleChange}
-                required
-              />
+              <input className="form-input" type="text" name="name" placeholder="Juan dela Cruz" value={form.name} onChange={handleChange} required />
             </div>
             <div className="form-group">
               <label>Email Address</label>
-              <input
-                className="form-input"
-                type="email"
-                name="email"
-                placeholder="juan@email.com"
-                value={form.email}
-                onChange={handleChange}
-                required
-              />
+              <input className="form-input" type="email" name="email" placeholder="juan@email.com" value={form.email} onChange={handleChange} required />
             </div>
           </div>
 
           <div className="form-group">
             <label>Subject</label>
-            <input
-              className="form-input"
-              type="text"
-              name="subject"
-              placeholder="Web App Development Project"
-              value={form.subject}
-              onChange={handleChange}
-              required
-            />
+            <input className="form-input" type="text" name="subject" placeholder="Web App Development Project" value={form.subject} onChange={handleChange} required />
           </div>
 
           <div className="form-group">
             <label>Message</label>
-            <textarea
-              className="form-textarea"
-              name="message"
-              placeholder="Tell us about your project, goals, and timeline..."
-              value={form.message}
-              onChange={handleChange}
-              required
-            />
+            <textarea className="form-textarea" name="message" placeholder="Tell us about your project, goals, and timeline..." value={form.message} onChange={handleChange} required />
           </div>
 
-          <button
-            className="btn-submit"
-            onClick={handleSubmit}
-            disabled={loading}
-          >
+          <button className="btn-submit" onClick={handleSubmit} disabled={loading}>
             {loading ? 'Sending...' : 'Send Message →'}
           </button>
 
           {status === 'success' && (
-            <div className="success-msg">
-              ✅ Message sent successfully! We'll get back to you within 24 hours.
-            </div>
+            <div className="success-msg">✅ Message sent successfully! We'll get back to you within 24 hours.</div>
           )}
           {status === 'error' && (
-            <div className="error-msg">
-              ❌ Something went wrong. Please try again or email us directly.
-            </div>
+            <div className="error-msg">❌ Something went wrong. Please try again or email us directly.</div>
           )}
         </div>
       </div>
 
-      {/* FOOTER */}
       <footer style={{ background: '#040610', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
         <div className="footer">
           <div className="footer-brand">MDS Software Development Services</div>
