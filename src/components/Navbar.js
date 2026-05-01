@@ -14,7 +14,7 @@ function Navbar() {
 
   useEffect(() => { setIsOpen(false); }, [location]);
 
-  const links = ['Home', 'About', 'Services', 'Projects'];
+  const links = ['Home', 'About', 'Services', 'Projects', 'Packages'];
 
   return (
     <>
