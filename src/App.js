@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
+import { AnimatePresence } from 'framer-motion';
 import ReactGA from 'react-ga4';
 import Home from './pages/Home';
 import About from './pages/About';
@@ -7,6 +8,8 @@ import Services from './pages/Services';
 import Projects from './pages/Projects';
 import Contact from './pages/Contact';
 import Packages from './pages/Packages';
+import NotFound from './pages/NotFound';
+import CustomCursor from './components/CustomCursor';
 
 function ScrollToTop() {
   const { pathname } = useLocation();
@@ -17,18 +20,30 @@ function ScrollToTop() {
   return null;
 }
 
-function App() {
+function AnimatedRoutes() {
+  const location = useLocation();
+
   return (
-    <Router>
-      <ScrollToTop />
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/about" element={<About />} />
+    <AnimatePresence mode="wait">
+      <Routes location={location} key={location.pathname}>
+        <Route path="/"         element={<Home />} />
+        <Route path="/about"    element={<About />} />
         <Route path="/services" element={<Services />} />
         <Route path="/projects" element={<Projects />} />
         <Route path="/packages" element={<Packages />} />
-        <Route path="/contact" element={<Contact />} />
+        <Route path="/contact"  element={<Contact />} />
+        <Route path="*"         element={<NotFound />} />
       </Routes>
+    </AnimatePresence>
+  );
+}
+
+function App() {
+  return (
+    <Router>
+      <CustomCursor />
+      <ScrollToTop />
+      <AnimatedRoutes />
     </Router>
   );
 }
