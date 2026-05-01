@@ -609,9 +609,19 @@ function Home() {
       <Navbar />
 
       <Helmet>
-  <title>MDS Software Development Services | Innovation. Code. Solutions.</title>
-  <meta name="description" content="MDS Software Development Services designs and builds high-quality web, mobile, and custom software solutions for businesses across the Philippines and beyond." />
-</Helmet>
+        <title>MDS Software Development Services | Innovation. Code. Solutions.</title>
+        <meta name="description" content="MDS Software Development Services designs and builds high-quality web, mobile, and custom software solutions for businesses across the Philippines and beyond." />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://mdstechservices-ph.online/" />
+        <meta property="og:title" content="MDS Software Development Services | Innovation. Code. Solutions." />
+        <meta property="og:description" content="MDS Software Development Services designs and builds high-quality web, mobile, and custom software solutions for businesses across the Philippines and beyond." />
+        <meta property="og:image" content="https://mdstechservices-ph.online/logo.png" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="MDS Software Development Services | Innovation. Code. Solutions." />
+        <meta name="twitter:description" content="MDS Software Development Services designs and builds high-quality web, mobile, and custom software solutions for businesses across the Philippines and beyond." />
+        <meta name="twitter:image" content="https://mdstechservices-ph.online/logo.png" />
+        <link rel="canonical" href="https://mdstechservices-ph.online/" />
+      </Helmet>
 
       {/* HERO */}
       <section className="hero">

@@ -117,6 +117,7 @@ function Navbar() {
         .nav-links li:nth-child(2) { animation: navLinkFadeIn 0.6s ease 0.3s both; }
         .nav-links li:nth-child(3) { animation: navLinkFadeIn 0.6s ease 0.4s both; }
         .nav-links li:nth-child(4) { animation: navLinkFadeIn 0.6s ease 0.5s both; }
+        .nav-links li:nth-child(5) { animation: navLinkFadeIn 0.6s ease 0.6s both; }
         .nav-links a {
           padding: 9px 20px;
           font-family: 'Outfit', sans-serif;

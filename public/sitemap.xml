@@ -1,28 +1,33 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://mdstechservices-ph.web.app/</loc>
+    <loc>https://mdstechservices-ph.online/</loc>
     <priority>1.0</priority>
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://mdstechservices-ph.web.app/about</loc>
+    <loc>https://mdstechservices-ph.online/about</loc>
     <priority>0.8</priority>
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://mdstechservices-ph.web.app/services</loc>
+    <loc>https://mdstechservices-ph.online/services</loc>
     <priority>0.8</priority>
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://mdstechservices-ph.web.app/projects</loc>
+    <loc>https://mdstechservices-ph.online/projects</loc>
     <priority>0.7</priority>
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://mdstechservices-ph.web.app/contact</loc>
+    <loc>https://mdstechservices-ph.online/contact</loc>
     <priority>0.7</priority>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://mdstechservices-ph.online/packages</loc>
+    <priority>0.8</priority>
     <changefreq>monthly</changefreq>
   </url>
 </urlset>

@@ -495,11 +495,20 @@ function About() {
       `}</style>
 
       <Navbar />
+
       <Helmet>
         <title>About Us | MDS Software Development Services</title>
         <meta name="description" content="Learn about MDS Software Development Services — a Philippine-based startup founded by Arem Jay Mendoza, dedicated to delivering innovative digital solutions." />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://mdstechservices-ph.online/about" />
         <meta property="og:title" content="About Us | MDS Software Development Services" />
-        <meta property="og:url" content="https://mds-profile-website.web.app/about" />
+        <meta property="og:description" content="Learn about MDS Software Development Services — a Philippine-based startup founded by Arem Jay Mendoza, dedicated to delivering innovative digital solutions." />
+        <meta property="og:image" content="https://mdstechservices-ph.online/logo.png" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="About Us | MDS Software Development Services" />
+        <meta name="twitter:description" content="Learn about MDS Software Development Services — a Philippine-based startup founded by Arem Jay Mendoza, dedicated to delivering innovative digital solutions." />
+        <meta name="twitter:image" content="https://mdstechservices-ph.online/logo.png" />
+        <link rel="canonical" href="https://mdstechservices-ph.online/about" />
       </Helmet>
 
       <section className="page-hero">

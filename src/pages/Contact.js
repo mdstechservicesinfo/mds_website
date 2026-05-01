@@ -412,11 +412,20 @@ function Contact() {
       `}</style>
 
       <Navbar />
+
       <Helmet>
         <title>Contact Us | MDS Software Development Services</title>
         <meta name="description" content="Get in touch with MDS Software Development Services. Send us a message and we'll respond within 24 hours." />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://mdstechservices-ph.online/contact" />
         <meta property="og:title" content="Contact Us | MDS Software Development Services" />
-        <meta property="og:url" content="https://mds-profile-website.web.app/contact" />
+        <meta property="og:description" content="Get in touch with MDS Software Development Services. Send us a message and we'll respond within 24 hours." />
+        <meta property="og:image" content="https://mdstechservices-ph.online/logo.png" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="Contact Us | MDS Software Development Services" />
+        <meta name="twitter:description" content="Get in touch with MDS Software Development Services. Send us a message and we'll respond within 24 hours." />
+        <meta name="twitter:image" content="https://mdstechservices-ph.online/logo.png" />
+        <link rel="canonical" href="https://mdstechservices-ph.online/contact" />
       </Helmet>
 
       <section className="page-hero">
