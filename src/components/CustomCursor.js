@@ -5,11 +5,11 @@ const rand = (arr) => arr[Math.floor(Math.random() * arr.length)];
 const FONT_SIZE = 13;
 
 // ─────────────────────────────────────────────
-//  TOUCH LAYER  (mobile & tablet)
+//  MOBILE LAYER  — falling matrix rain, no cursor
 // ─────────────────────────────────────────────
-function TouchEffect() {
+function MobileEffect() {
   const canvasRef = useRef(null);
-  const particles = useRef([]);
+  const columns   = useRef([]);
   const raf       = useRef(null);
 
   useEffect(() => {
@@ -19,138 +19,76 @@ function TouchEffect() {
     const resize = () => {
       canvas.width  = window.innerWidth;
       canvas.height = window.innerHeight;
+      initColumns();
     };
+
+    function initColumns() {
+      const count = Math.floor(window.innerWidth / 28);
+      columns.current = Array.from({ length: count }, (_, i) => ({
+        x:       i * 28 + Math.random() * 14,
+        y:       Math.random() * -window.innerHeight,
+        speed:   0.4 + Math.random() * 0.5,
+        chars:   Array.from({ length: 20 }, () => rand(CHARS)),
+        mutate:  Array.from({ length: 20 }, () => Math.random() * 30 | 0),
+        length:  8 + Math.floor(Math.random() * 12),
+        opacity: 0.04 + Math.random() * 0.06,
+      }));
+    }
+
     resize();
     window.addEventListener('resize', resize);
 
-    function spawnBurst(x, y) {
-      const count = 22;
-      for (let i = 0; i < count; i++) {
-        const angle   = (i / count) * Math.PI * 2;
-        const speed   = 1.2 + Math.random() * 2.2;
-        const maxLife = 55 + Math.random() * 35;
-        particles.current.push({
-          x, y,
-          char:        rand(CHARS),
-          vx:          Math.cos(angle) * speed,
-          vy:          Math.sin(angle) * speed,
-          life:        maxLife,
-          maxLife,
-          size:        11 + Math.random() * 7,
-          mutateTimer: Math.floor(Math.random() * 10) + 5,
-          mutateCount: 0,
-        });
-      }
-      for (let i = 0; i < 8; i++) {
-        const maxLife = 40 + Math.random() * 25;
-        particles.current.push({
-          x, y,
-          char:        rand(CHARS),
-          vx:          (Math.random() - 0.5) * 1.5,
-          vy:          (Math.random() - 0.5) * 1.5,
-          life:        maxLife,
-          maxLife,
-          size:        13 + Math.random() * 6,
-          mutateTimer: Math.floor(Math.random() * 8) + 4,
-          mutateCount: 0,
-        });
-      }
-    }
-
-    function spawnTrail(x1, y1, x2, y2) {
-      const dx    = x2 - x1;
-      const dy    = y2 - y1;
-      const dist  = Math.sqrt(dx * dx + dy * dy);
-      const steps = Math.max(1, Math.floor(dist / 14));
-      for (let s = 0; s < steps; s++) {
-        const t       = (s + 1) / steps;
-        const maxLife = 35 + Math.random() * 20;
-        particles.current.push({
-          x:           x1 + dx * t,
-          y:           y1 + dy * t,
-          char:        rand(CHARS),
-          vx:          (Math.random() - 0.5) * 0.4,
-          vy:          0.3 + Math.random() * 0.5,
-          life:        maxLife,
-          maxLife,
-          size:        9 + Math.random() * 5,
-          mutateTimer: Math.floor(Math.random() * 10) + 5,
-          mutateCount: 0,
-        });
-      }
-    }
-
-    function particleColor(p) {
-      const t = p.life / p.maxLife;
-      if (t > 0.8)  return `rgba(220,245,255,${((t - 0.8) / 0.2) * 0.9})`;
-      if (t > 0.45) return `rgba(6,182,212,${0.2 + ((t - 0.45) / 0.35) * 0.6})`;
-      return `rgba(37,99,235,${(t / 0.45) * 0.45})`;
-    }
-
-    const touchPositions = {};
-
-    const onTouchStart = (e) => {
-      Array.from(e.changedTouches).forEach(t => {
-        spawnBurst(t.clientX, t.clientY);
-        touchPositions[t.identifier] = { x: t.clientX, y: t.clientY };
-      });
-    };
-
-    const onTouchMove = (e) => {
-      Array.from(e.changedTouches).forEach(t => {
-        const prev = touchPositions[t.identifier];
-        if (prev) spawnTrail(prev.x, prev.y, t.clientX, t.clientY);
-        touchPositions[t.identifier] = { x: t.clientX, y: t.clientY };
-      });
-    };
-
-    const onTouchEnd = (e) => {
-      Array.from(e.changedTouches).forEach(t => {
-        delete touchPositions[t.identifier];
-      });
-    };
-
-    document.addEventListener('touchstart', onTouchStart, { passive: true });
-    document.addEventListener('touchmove',  onTouchMove,  { passive: true });
-    document.addEventListener('touchend',   onTouchEnd,   { passive: true });
-
     const tick = () => {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      const W = canvas.width;
+      const H = canvas.height;
+
+      ctx.clearRect(0, 0, W, H);
       ctx.textAlign    = 'center';
-      ctx.textBaseline = 'middle';
+      ctx.textBaseline = 'top';
 
-      particles.current.forEach(p => {
-        p.x    += p.vx;
-        p.y    += p.vy;
-        p.vy   *= 1.012;
-        p.life--;
-
-        p.mutateCount++;
-        if (p.mutateCount >= p.mutateTimer) {
-          p.char        = rand(CHARS);
-          p.mutateTimer = Math.floor(Math.random() * 10) + 4;
-          p.mutateCount = 0;
+      columns.current.forEach(col => {
+        col.y += col.speed;
+        if (col.y > H + col.length * FONT_SIZE) {
+          col.y     = -col.length * FONT_SIZE;
+          col.speed = 0.4 + Math.random() * 0.5;
+          col.chars = Array.from({ length: 20 }, () => rand(CHARS));
         }
 
-        ctx.save();
-        ctx.shadowColor = `rgba(6,182,212,${(p.life / p.maxLife) * 0.6})`;
-        ctx.shadowBlur  = 10;
-        ctx.font        = `${p.size}px "JetBrains Mono", monospace`;
-        ctx.fillStyle   = particleColor(p);
-        ctx.fillText(p.char, p.x, p.y);
-        ctx.restore();
+        col.mutate = col.mutate.map((m, ci) => {
+          if (m <= 0) {
+            col.chars[ci] = rand(CHARS);
+            return Math.random() * 40 | 0;
+          }
+          return m - 1;
+        });
+
+        for (let ci = 0; ci < col.length; ci++) {
+          const cy = col.y + ci * FONT_SIZE;
+          if (cy < -FONT_SIZE || cy > H) continue;
+
+          const isHead = ci === col.length - 1;
+          const fade   = ci / col.length;
+
+          let alpha;
+          if (isHead) {
+            alpha = col.opacity * 5;
+            ctx.fillStyle = `rgba(200,240,255,${Math.min(alpha, 0.35)})`;
+          } else {
+            alpha = fade * col.opacity * 3.5;
+            ctx.fillStyle = `rgba(6,182,212,${Math.min(alpha, 0.22)})`;
+          }
+
+          ctx.font = `${FONT_SIZE}px "JetBrains Mono", monospace`;
+          ctx.fillText(col.chars[ci] || rand(CHARS), col.x, cy);
+        }
       });
 
-      particles.current = particles.current.filter(p => p.life > 0);
       raf.current = requestAnimationFrame(tick);
     };
     raf.current = requestAnimationFrame(tick);
 
     return () => {
       window.removeEventListener('resize', resize);
-      document.removeEventListener('touchstart', onTouchStart);
-      document.removeEventListener('touchmove',  onTouchMove);
-      document.removeEventListener('touchend',   onTouchEnd);
       cancelAnimationFrame(raf.current);
     };
   }, []);
@@ -162,7 +100,7 @@ function TouchEffect() {
         position:      'fixed',
         inset:         0,
         pointerEvents: 'none',
-        zIndex:        99999,
+        zIndex:        1,
       }}
     />
   );
@@ -546,7 +484,8 @@ function CustomCursor() {
   // Render nothing until we know which device type we're on
   if (isTouch === null) return null;
 
-  return isTouch ? <TouchEffect /> : <DesktopCursor />;
+  // Touch devices get matrix rain only — no cursor
+  return isTouch ? <MobileEffect /> : <DesktopCursor />;
 }
 
 export default CustomCursor;
