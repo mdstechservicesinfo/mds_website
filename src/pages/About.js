@@ -93,6 +93,29 @@ function About() {
             from { opacity: 0; transform: scale(0.85); }
             to { opacity: 1; transform: scale(1); }
           }
+          @keyframes orbFloat {
+            0%,100% { transform: translate(0, 0) scale(1); }
+            33% { transform: translate(12px, -18px) scale(1.06); }
+            66% { transform: translate(-8px, 10px) scale(0.97); }
+          }
+          @keyframes orbFloat2 {
+            0%,100% { transform: translate(0, 0) scale(1); }
+            33% { transform: translate(-14px, 12px) scale(1.04); }
+            66% { transform: translate(10px, -8px) scale(0.98); }
+          }
+          @keyframes cardShimmer {
+            0% { background-position: -200% center; }
+            100% { background-position: 200% center; }
+          }
+
+          @keyframes avatarGlow {
+            0%,100% { box-shadow: 0 0 0 3px rgba(37,99,235,0.35), 0 0 24px rgba(37,99,235,0.2); }
+            50% { box-shadow: 0 0 0 3px rgba(6,182,212,0.45), 0 0 40px rgba(6,182,212,0.3); }
+          }
+          @keyframes tagSlideIn {
+            from { opacity: 0; transform: translateX(-8px); }
+            to { opacity: 1; transform: translateX(0); }
+          }
 
           .reveal {
             opacity: 0;
@@ -190,187 +213,323 @@ function About() {
           .overview-right {
             display: flex;
             flex-direction: column;
-            gap: 16px;
-          }
-          .info-card {
-            padding: 24px;
-            background: rgba(255,255,255,0.025);
-            border: 1px solid var(--border);
-            border-radius: 14px;
-            transition: all 0.3s ease;
-          }
-          .info-card:hover {
-            border-color: rgba(37,99,235,0.3);
-            background: rgba(37,99,235,0.05);
-            transform: translateX(4px);
-          }
-          .info-card h4 {
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 11px;
-            color: #60a5fa;
-            letter-spacing: 0.1em;
-            text-transform: uppercase;
-            margin-bottom: 8px;
-          }
-          .info-card p {
-            font-family: 'Outfit', sans-serif;
-            font-size: 14px;
-            color: rgba(255,255,255,0.7);
-            line-height: 1.7;
-            font-weight: 400;
+            gap: 0;
           }
 
-          .founder-photo-wrap {
+          /* ─── GLASSMORPHISM FOUNDER CARD ─── */
+          .founder-glass-wrap {
             position: relative;
-            border-radius: 16px;
-            overflow: hidden;
-            border: 1px solid rgba(37,99,235,0.2);
-            background: rgba(255,255,255,0.02);
-            transition: all 0.5s cubic-bezier(0.4,0,0.2,1);
-            animation: glowPulse 4s ease-in-out infinite;
-            cursor: pointer;
+            border-radius: 24px;
+            overflow: visible;
           }
-          .founder-photo-wrap::before {
+
+          /* Ambient orbs behind the card */
+          .founder-orb {
+            position: absolute;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 0;
+            filter: blur(60px);
+          }
+          .founder-orb-1 {
+            width: 260px; height: 260px;
+            background: radial-gradient(circle, rgba(37,99,235,0.35) 0%, transparent 70%);
+            top: -60px; left: -60px;
+            animation: orbFloat 8s ease-in-out infinite;
+          }
+          .founder-orb-2 {
+            width: 220px; height: 220px;
+            background: radial-gradient(circle, rgba(6,182,212,0.3) 0%, transparent 70%);
+            bottom: -40px; right: -40px;
+            animation: orbFloat2 10s ease-in-out infinite;
+          }
+          .founder-orb-3 {
+            width: 160px; height: 160px;
+            background: radial-gradient(circle, rgba(139,92,246,0.18) 0%, transparent 70%);
+            top: 40%; left: -30px;
+            animation: orbFloat 12s ease-in-out 2s infinite;
+          }
+
+          /* The main glass card */
+          .founder-glass-card {
+            position: relative;
+            z-index: 1;
+            border-radius: 24px;
+            background: rgba(255,255,255,0.035);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid rgba(255,255,255,0.09);
+            overflow: hidden;
+            cursor: pointer;
+            transition: transform 0.45s cubic-bezier(0.4,0,0.2,1),
+                        box-shadow 0.45s cubic-bezier(0.4,0,0.2,1),
+                        border-color 0.45s ease,
+                        background 0.45s ease;
+            box-shadow:
+              0 8px 32px rgba(0,0,0,0.35),
+              0 0 0 1px rgba(255,255,255,0.06),
+              inset 0 1px 0 rgba(255,255,255,0.08);
+          }
+          .founder-glass-card:hover {
+            transform: translateY(-6px);
+            background: rgba(255,255,255,0.055);
+            border-color: rgba(37,99,235,0.3);
+            box-shadow:
+              0 24px 64px rgba(0,0,0,0.45),
+              0 0 0 1px rgba(37,99,235,0.2),
+              0 0 60px rgba(37,99,235,0.12),
+              inset 0 1px 0 rgba(255,255,255,0.12);
+          }
+
+          /* Top rainbow gradient border line */
+          .founder-glass-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 1px;
+            background: linear-gradient(90deg,
+              transparent 0%,
+              rgba(37,99,235,0.7) 20%,
+              rgba(6,182,212,0.9) 50%,
+              rgba(37,99,235,0.7) 80%,
+              transparent 100%);
+            z-index: 2;
+          }
+
+          /* Shimmer sweep on hover */
+          .founder-glass-card::after {
             content: '';
             position: absolute;
             inset: 0;
-            background: linear-gradient(135deg, rgba(37,99,235,0.08), transparent 50%, rgba(6,182,212,0.06));
+            background: linear-gradient(
+              105deg,
+              transparent 30%,
+              rgba(255,255,255,0.04) 50%,
+              transparent 70%
+            );
+            background-size: 200% 100%;
+            background-position: -200% center;
             z-index: 1;
-            opacity: 0;
-            transition: opacity 0.4s;
+            transition: background-position 0s;
+            pointer-events: none;
           }
-          .founder-photo-wrap:hover::before { opacity: 1; }
-          .founder-photo-wrap::after {
-            content: '';
-            position: absolute;
-            top: -1px; right: -1px;
-            width: 40px; height: 40px;
-            border-top: 2px solid #06b6d4;
-            border-right: 2px solid #06b6d4;
-            border-radius: 0 16px 0 0;
-            z-index: 3;
-            transition: all 0.4s ease;
+          .founder-glass-card:hover::after {
+            animation: cardShimmer 0.6s ease forwards;
           }
-          .founder-photo-wrap:hover::after {
-            width: 60px; height: 60px;
-            border-color: #22d3ee;
-            box-shadow: 4px -4px 12px rgba(34,211,238,0.3);
+
+          /* Photo section */
+          .founder-glass-photo-wrap {
+            position: relative;
+            overflow: hidden;
           }
-          .founder-corner-bl {
-            position: absolute;
-            bottom: -1px; left: -1px;
-            width: 40px; height: 40px;
-            border-bottom: 2px solid #2563eb;
-            border-left: 2px solid #2563eb;
-            border-radius: 0 0 0 16px;
-            z-index: 3;
-            transition: all 0.4s ease;
+          .founder-glass-photo-wrap img {
+            width: 100%;
+            display: block;
+            max-height: 300px;
+            object-fit: cover;
+            object-position: top center;
+            transition: transform 0.6s cubic-bezier(0.4,0,0.2,1), filter 0.5s ease;
+            filter: brightness(0.88) saturate(0.95);
           }
-          .founder-photo-wrap:hover .founder-corner-bl {
-            width: 60px; height: 60px;
-            border-color: #3b82f6;
-            box-shadow: -4px 4px 12px rgba(37,99,235,0.3);
+          .founder-glass-card:hover .founder-glass-photo-wrap img {
+            transform: scale(1.06);
+            filter: brightness(1) saturate(1.1);
           }
-          .founder-scan {
+
+          /* Photo scan line */
+          .founder-glass-scan {
             position: absolute;
             left: 0; right: 0;
             height: 2px;
-            background: linear-gradient(90deg, transparent, rgba(6,182,212,0.6), rgba(37,99,235,0.6), transparent);
-            z-index: 2;
+            background: linear-gradient(90deg, transparent, rgba(6,182,212,0.7), rgba(37,99,235,0.7), transparent);
+            z-index: 3;
             top: -10%;
-            opacity: 0;
-            animation: scanLine 4s ease-in-out infinite;
             pointer-events: none;
+            animation: scanLine 4s ease-in-out infinite;
           }
-          .founder-photo-wrap img {
-            width: 100%;
-            display: block;
-            object-fit: cover;
-            object-position: top center;
-            max-height: 380px;
-            transition: transform 0.6s cubic-bezier(0.4,0,0.2,1), filter 0.4s ease;
-            filter: brightness(0.9) saturate(0.95);
-          }
-          .founder-photo-wrap:hover img {
-            transform: scale(1.05);
-            filter: brightness(1.05) saturate(1.1);
-          }
-          .founder-photo-overlay {
+
+          /* Gradient overlay at bottom of photo */
+          .founder-glass-photo-fade {
             position: absolute;
             bottom: 0; left: 0; right: 0;
-            padding: 48px 20px 18px;
-            background: linear-gradient(to top, rgba(4,6,16,0.96) 0%, rgba(4,6,16,0.6) 60%, transparent 100%);
-            display: flex;
-            align-items: flex-end;
-            justify-content: space-between;
+            height: 80px;
+            background: linear-gradient(to top, rgba(4,6,16,0.9) 0%, transparent 100%);
             z-index: 2;
-            transform: translateY(100%);
-            opacity: 0;
-            transition: all 0.45s cubic-bezier(0.4,0,0.2,1);
           }
-          .founder-photo-wrap:hover .founder-photo-overlay {
-            transform: translateY(0);
-            opacity: 1;
-          }
-          .founder-click-hint {
+
+          /* Corner bracket accents */
+          .founder-corner-tr {
             position: absolute;
-            top: 12px;
-            left: 12px;
-            padding: 4px 10px;
-            background: rgba(4,6,16,0.7);
-            border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 100px;
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 9px;
-            color: rgba(255,255,255,0.45);
-            letter-spacing: 0.1em;
+            top: -1px; right: -1px;
+            width: 36px; height: 36px;
+            border-top: 2px solid #06b6d4;
+            border-right: 2px solid #06b6d4;
+            border-radius: 0 24px 0 0;
             z-index: 4;
+            transition: all 0.4s ease;
+          }
+          .founder-glass-card:hover .founder-corner-tr {
+            width: 52px; height: 52px;
+            border-color: #22d3ee;
+            box-shadow: 4px -4px 16px rgba(34,211,238,0.4);
+          }
+          .founder-corner-bl2 {
+            position: absolute;
+            bottom: -1px; left: -1px;
+            width: 36px; height: 36px;
+            border-bottom: 2px solid #2563eb;
+            border-left: 2px solid #2563eb;
+            border-radius: 0 0 0 24px;
+            z-index: 4;
+            transition: all 0.4s ease;
+          }
+          .founder-glass-card:hover .founder-corner-bl2 {
+            width: 52px; height: 52px;
+            border-color: #3b82f6;
+            box-shadow: -4px 4px 16px rgba(37,99,235,0.4);
+          }
+
+          /* Glass info body */
+          .founder-glass-body {
+            position: relative;
+            z-index: 2;
+            padding: 20px 24px 24px;
+          }
+
+
+
+          /* Avatar + name row */
+          .founder-glass-identity {
             display: flex;
             align-items: center;
-            gap: 5px;
+            gap: 14px;
+            margin-bottom: 16px;
+          }
+          .founder-glass-avatar {
+            width: 52px; height: 52px;
+            border-radius: 14px;
+            overflow: hidden;
+            flex-shrink: 0;
+            animation: avatarGlow 4s ease-in-out infinite;
+          }
+          .founder-glass-avatar img {
+            width: 100%; height: 100%;
+            object-fit: cover;
+            object-position: top center;
+          }
+          .founder-glass-name {
+            font-family: 'Outfit', sans-serif;
+            font-size: 18px;
+            font-weight: 800;
+            color: #fff;
+            letter-spacing: -0.03em;
+            line-height: 1.1;
+          }
+          .founder-glass-role {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 10px;
+            color: rgba(6,182,212,0.85);
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            margin-top: 5px;
+          }
+
+          /* Divider */
+          .founder-glass-divider {
+            height: 1px;
+            background: linear-gradient(90deg, rgba(255,255,255,0.06), rgba(37,99,235,0.25), rgba(6,182,212,0.2), rgba(255,255,255,0.06));
+            margin-bottom: 16px;
+          }
+
+          /* Info grid inside card */
+          .founder-glass-info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+          }
+          .founder-glass-info-item {
+            padding: 12px 14px;
+            background: rgba(255,255,255,0.025);
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 12px;
             transition: all 0.3s ease;
-            pointer-events: none;
-            white-space: nowrap;
           }
-          .founder-photo-wrap:hover .founder-click-hint {
+          .founder-glass-info-item:hover {
+            background: rgba(37,99,235,0.07);
+            border-color: rgba(37,99,235,0.2);
+            transform: translateY(-2px);
+          }
+          .founder-glass-info-label {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 9px;
+            color: rgba(96,165,250,0.7);
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            margin-bottom: 5px;
+          }
+          .founder-glass-info-val {
+            font-family: 'Outfit', sans-serif;
+            font-size: 12px;
+            color: rgba(255,255,255,0.75);
+            font-weight: 500;
+            line-height: 1.4;
+          }
+
+          /* Tech tags row */
+          .founder-glass-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-top: 14px;
+          }
+          .founder-glass-tag {
+            padding: 4px 11px;
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 100px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 10px;
+            color: rgba(255,255,255,0.45);
+            letter-spacing: 0.06em;
+            transition: all 0.2s ease;
+            animation: tagSlideIn 0.4s ease both;
+          }
+          .founder-glass-tag:hover {
             border-color: rgba(37,99,235,0.35);
-            color: #60a5fa;
-            background: rgba(4,6,16,0.88);
+            color: #93c5fd;
+            background: rgba(37,99,235,0.08);
           }
-          .click-hint-dot {
+
+          /* Click hint chip */
+          .founder-glass-hint {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 7px;
+            margin-top: 16px;
+            padding: 8px 16px;
+            background: rgba(255,255,255,0.025);
+            border: 1px solid rgba(255,255,255,0.07);
+            border-radius: 100px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 10px;
+            color: rgba(255,255,255,0.35);
+            letter-spacing: 0.1em;
+            transition: all 0.3s ease;
+          }
+          .founder-glass-card:hover .founder-glass-hint {
+            border-color: rgba(37,99,235,0.3);
+            color: #60a5fa;
+            background: rgba(37,99,235,0.06);
+          }
+          .founder-glass-hint-dot {
             width: 5px; height: 5px;
             border-radius: 50%;
             background: #60a5fa;
             animation: dotBlink 1.5s ease-in-out infinite;
           }
-          .founder-photo-name {
-            font-family: 'Outfit', sans-serif;
-            font-size: 16px;
-            font-weight: 800;
-            color: #fff;
-            letter-spacing: -0.02em;
-            animation: nameFadeIn 0.4s ease 0.1s both;
-          }
-          .founder-photo-role {
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 10px;
-            color: rgba(6,182,212,0.9);
-            letter-spacing: 0.1em;
-            text-transform: uppercase;
-            margin-top: 3px;
-          }
-          .founder-photo-badge {
-            padding: 5px 12px;
-            background: linear-gradient(135deg, rgba(37,99,235,0.3), rgba(6,182,212,0.3));
-            border: 1px solid rgba(6,182,212,0.4);
-            border-radius: 100px;
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 10px;
-            color: #22d3ee;
-            letter-spacing: 0.12em;
-            animation: badgePop 0.5s cubic-bezier(0.4,0,0.2,1) 0.2s both;
-            box-shadow: 0 0 12px rgba(6,182,212,0.2);
-          }
+
+          /* ─── END GLASSMORPHISM FOUNDER CARD ─── */
 
           .mv-section { padding: 100px 40px; max-width: 1280px; margin: 0 auto; }
           .mv-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 56px; }
@@ -464,8 +623,7 @@ function About() {
 
           /* RESPONSIVE */
           @media (max-width: 1024px) {
-            .founder-photo-overlay { transform: translateY(0) !important; opacity: 1 !important; }
-            .founder-click-hint { top: auto !important; left: 50% !important; transform: translateX(-50%) !important; bottom: 72px !important; white-space: nowrap; }
+            .founder-glass-photo-wrap img { max-height: 260px; }
           }
           @media (max-width: 768px) {
             .page-hero { padding: 120px 20px 60px; }
@@ -482,8 +640,7 @@ function About() {
             .modal-header { padding: 20px 20px 16px; }
             .modal-tabs { padding: 12px 20px 0; }
             .modal-content { padding: 20px; }
-            .founder-photo-overlay { transform: translateY(0) !important; opacity: 1 !important; }
-            .founder-click-hint { top: auto !important; left: 50% !important; transform: translateX(-50%) !important; bottom: 72px !important; white-space: nowrap; }
+            .founder-glass-info-grid { grid-template-columns: 1fr 1fr; }
           }
           @media (max-width: 480px) {
             .values-grid { grid-template-columns: 1fr; }
@@ -491,8 +648,7 @@ function About() {
             .mv-card { padding: 28px 20px; }
             .cta-wrap { padding: 50px 16px; }
             .modal-header-name { font-size: 15px; }
-            .founder-photo-overlay { transform: translateY(0) !important; opacity: 1 !important; }
-            .founder-click-hint { top: auto !important; left: 50% !important; transform: translateX(-50%) !important; bottom: 72px !important; white-space: nowrap; }
+            .founder-glass-info-grid { grid-template-columns: 1fr; }
           }
         `}</style>
 
@@ -515,7 +671,7 @@ function About() {
 
         <section className="page-hero">
           <div className="page-hero-glow" />
-          <span className="section-tag" style={{ animation: 'fadeUp 0.5s ease both' }}>// about us</span>
+          <span className="section-tag" style={{ animation: 'fadeUp 0.5s ease both' }}>{'// about us'}</span>
           <h1 className="page-title">
             Who We Are &<br />
             <span>What Drives Us</span>
@@ -528,57 +684,100 @@ function About() {
         <div className="overview">
           <div className="overview-inner">
             <div className="overview-left reveal">
-              <span className="section-tag">// company overview</span>
+              <span className="section-tag">{'// company overview'}</span>
               <h2>Built to Help Businesses<br />Go Digital</h2>
               <p>Founded by Arem Jay Mendoza, MDS was established to help clients modernize their operations through reliable software systems, websites, and mobile applications.</p>
               <p>We serve startups, small-to-medium enterprises, and organizations that require customized software solutions tailored to their specific operational needs.</p>
               <p>We believe technology should empower businesses — not complicate them.</p>
             </div>
-            <div className="overview-right">
-              <div className="founder-photo-wrap reveal reveal-d1" onClick={() => setModalOpen(true)}>
-                <div className="founder-scan" />
-                <div className="founder-corner-bl" />
-                <div className="founder-click-hint">
-                  <div className="click-hint-dot" />
-                  CLICK TO VIEW PROFILE
+
+            {/* ─── GLASSMORPHISM FOUNDER CARD ─── */}
+            <div className="founder-glass-wrap reveal reveal-d1">
+              {/* Ambient background orbs */}
+              <div className="founder-orb founder-orb-1" />
+              <div className="founder-orb founder-orb-2" />
+              <div className="founder-orb founder-orb-3" />
+
+              <div className="founder-glass-card" onClick={() => setModalOpen(true)}>
+                {/* Corner bracket accents */}
+                <div className="founder-corner-tr" />
+                <div className="founder-corner-bl2" />
+
+                {/* Photo */}
+                <div className="founder-glass-photo-wrap">
+                  <div className="founder-glass-scan" />
+                  <img src={founderImg} alt="Arem Jay Mendoza - Founder of MDS" />
+                  <div className="founder-glass-photo-fade" />
                 </div>
-                <img src={founderImg} alt="Arem Jay Mendoza - Founder of MDS" />
-                <div className="founder-photo-overlay">
-                  <div>
-                    <div className="founder-photo-name">Arem Jay Mendoza</div>
-                    <div className="founder-photo-role">Founder & Lead Developer</div>
+
+                {/* Glass info body */}
+                <div className="founder-glass-body">
+                  {/* Identity row */}
+                  <div className="founder-glass-identity">
+                    <div className="founder-glass-avatar">
+                      <img src={founderImg} alt="Arem Jay Mendoza" />
+                    </div>
+                    <div>
+                      <div className="founder-glass-name">Arem Jay Mendoza</div>
+                      <div className="founder-glass-role">Founder & Lead Developer</div>
+                    </div>
                   </div>
-                  <div className="founder-photo-badge">MDS</div>
+
+                  <div className="founder-glass-divider" />
+
+                  {/* Info grid */}
+                  <div className="founder-glass-info-grid">
+                    {[
+                      { label: 'Location', val: 'Philippines' },
+                      { label: 'Type', val: 'SWE Startup' },
+                      { label: 'Team', val: '2–5 Engineers' },
+                      { label: 'Status', val: 'Open to Work' },
+                    ].map((item, i) => (
+                      <div className="founder-glass-info-item" key={i}>
+                        <div className="founder-glass-info-label">{item.label}</div>
+                        <div className="founder-glass-info-val">{item.val}</div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Tech tags */}
+                  <div className="founder-glass-tags">
+                    {['React', 'C#', '.NET', 'Azure', 'AWS', 'SQL'].map((tag, i) => (
+                      <span
+                        key={tag}
+                        className="founder-glass-tag"
+                        style={{ animationDelay: `${i * 0.05}s` }}
+                      >
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+
+                  {/* Click hint */}
+                  <div className="founder-glass-hint">
+                    <div className="founder-glass-hint-dot" />
+                    CLICK TO VIEW FULL PROFILE
+                  </div>
                 </div>
               </div>
-              {[
-                { label: 'Location', value: 'Philippines' },
-                { label: 'Company Type', value: 'Software Development Startup' },
-                { label: 'Team Size', value: '2–5 Professional Programmers' },
-                { label: 'Contact', value: 'mdstechservices.info@gmail.com' },
-              ].map((item, i) => (
-                <div className={`info-card reveal reveal-d${Math.min(i + 1, 5)}`} key={i}>
-                  <h4>{item.label}</h4>
-                  <p>{item.value}</p>
-                </div>
-              ))}
             </div>
+            {/* ─── END GLASSMORPHISM FOUNDER CARD ─── */}
           </div>
         </div>
 
         <div className="mv-section">
-          <span className="section-tag reveal">// mission & vision</span>
+          <span className="section-tag reveal">{'// mission & vision'}</span>
           <h2 className="reveal" style={{ fontFamily: "'Outfit', sans-serif", fontSize: 'clamp(28px, 3vw, 42px)', fontWeight: 900, letterSpacing: '-0.03em', lineHeight: 1.1 }}>
             Our Purpose &<br /><span style={{ color: '#60a5fa' }}>Our Direction</span>
           </h2>
           <div className="mv-grid">
             <div className="mv-card mission reveal reveal-d1">
-              <span className="mv-label">// mission</span>
+              <span className="mv-label">{'// mission'}</span>
               <h3>Our Mission</h3>
               <p>To deliver high-quality, secure, and innovative software solutions that help businesses improve efficiency, productivity, and digital transformation.</p>
             </div>
             <div className="mv-card vision reveal reveal-d2">
-              <span className="mv-label">// vision</span>
+              <span className="mv-label">{'// vision'}</span>
               <h3>Our Vision</h3>
               <p>To become a trusted and leading software development company in the Philippines and internationally, known for reliability, professionalism, and excellence in technology services.</p>
             </div>
@@ -587,7 +786,7 @@ function About() {
 
         <div className="values-section">
           <div className="values-inner">
-            <span className="section-tag reveal">// core values</span>
+            <span className="section-tag reveal">{'// core values'}</span>
             <h2 className="reveal" style={{ fontFamily: "'Outfit', sans-serif", fontSize: 'clamp(28px, 3vw, 42px)', fontWeight: 900, letterSpacing: '-0.03em', lineHeight: 1.1 }}>
               What We Stand For
             </h2>
@@ -611,9 +810,9 @@ function About() {
         </div>
 
         <div className="obj-section">
-          <span className="section-tag reveal">// business objectives</span>
+          <span className="section-tag reveal">{'// business objectives'}</span>
           <h2 className="reveal" style={{ fontFamily: "'Outfit', sans-serif", fontSize: 'clamp(28px, 3vw, 42px)', fontWeight: 900, letterSpacing: '-0.03em', lineHeight: 1.1 }}>
-            Where We're <span style={{ color: '#60a5fa' }}>Headed</span>
+            Where We&apos;re <span style={{ color: '#60a5fa' }}>Headed</span>
           </h2>
           <div className="obj-list">
             {[
@@ -635,7 +834,7 @@ function About() {
         <div className="cta-wrap">
           <div className="cta-glow" />
           <h2 className="reveal">Ready to Work<br /><span style={{ color: '#60a5fa' }}>With Us?</span></h2>
-          <p className="reveal reveal-d1">Let's build something great together. Reach out and let's talk about your project.</p>
+          <p className="reveal reveal-d1">Let&apos;s build something great together. Reach out and let&apos;s talk about your project.</p>
           <Link to="/contact" className="btn-main reveal reveal-d2">Get In Touch →</Link>
         </div>
 

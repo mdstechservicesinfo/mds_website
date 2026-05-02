@@ -1,43 +1,135 @@
-import React, { useEffect, useRef } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { Helmet } from 'react-helmet-async';
-import Navbar from '../components/Navbar';
-import PageTransition from '../components/PageTransition';
+import React, { useEffect, useRef } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { Helmet } from "react-helmet-async";
+import Navbar from "../components/Navbar";
+import PageTransition from "../components/PageTransition";
+
+const CHARS =
+  "ｦｱｳｴｵｶｷｸｹｺｻｼｽｾｿﾀﾁﾂﾃﾄﾅﾆﾇﾈﾉﾊﾋﾌﾍﾎﾏﾐﾑﾒﾓﾔﾕﾖﾗﾘﾙﾚﾛﾜﾝ0123456789@#$%<>{}=+*".split(
+    "",
+  );
+const rand = (arr) => arr[Math.floor(Math.random() * arr.length)];
+const FONT_SIZE = 13;
 
 function NotFound() {
-  const navigate  = useNavigate();
-  const timerRef  = useRef(null);
-  const countRef  = useRef(null);
+  const navigate = useNavigate();
+  const timerRef = useRef(null);
+  const countRef = useRef(null);
+  const canvasRef = useRef(null);
+  const rafRef = useRef(null);
+  const columns = useRef([]);
 
-  // Auto-redirect countdown
+  /* ── MATRIX RAIN — brand colors ── */
   useEffect(() => {
-    let seconds = 10;
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext("2d");
+
+    const resize = () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+      initColumns();
+    };
+
+    function initColumns() {
+      const count = Math.floor(window.innerWidth / 28);
+      columns.current = Array.from({ length: count }, (_, i) => ({
+        x: i * 28 + Math.random() * 14,
+        y: Math.random() * -window.innerHeight,
+        speed: 0.4 + Math.random() * 0.5,
+        chars: Array.from({ length: 20 }, () => rand(CHARS)),
+        mutate: Array.from({ length: 20 }, () => (Math.random() * 30) | 0),
+        length: 8 + Math.floor(Math.random() * 12),
+        opacity: 0.04 + Math.random() * 0.06,
+      }));
+    }
+
+    resize();
+    window.addEventListener("resize", resize);
+
+    const tick = () => {
+      const W = canvas.width;
+      const H = canvas.height;
+
+      ctx.clearRect(0, 0, W, H);
+      ctx.textAlign = "center";
+      ctx.textBaseline = "top";
+
+      columns.current.forEach((col) => {
+        col.y += col.speed;
+        if (col.y > H + col.length * FONT_SIZE) {
+          col.y = -col.length * FONT_SIZE;
+          col.speed = 0.4 + Math.random() * 0.5;
+          col.chars = Array.from({ length: 20 }, () => rand(CHARS));
+        }
+
+        col.mutate = col.mutate.map((m, ci) => {
+          if (m <= 0) {
+            col.chars[ci] = rand(CHARS);
+            return (Math.random() * 40) | 0;
+          }
+          return m - 1;
+        });
+
+        for (let ci = 0; ci < col.length; ci++) {
+          const cy = col.y + ci * FONT_SIZE;
+          if (cy < -FONT_SIZE || cy > H) continue;
+
+          const isHead = ci === col.length - 1;
+          const fade = ci / col.length;
+
+          if (isHead) {
+            // bright white-cyan head — matches CustomCursor
+            ctx.fillStyle = `rgba(200,240,255,${Math.min(col.opacity * 5, 0.35)})`;
+          } else {
+            // cyan body — matches CustomCursor
+            ctx.fillStyle = `rgba(6,182,212,${Math.min(fade * col.opacity * 3.5, 0.22)})`;
+          }
+
+          ctx.font = `${FONT_SIZE}px "JetBrains Mono", monospace`;
+          ctx.fillText(col.chars[ci] || rand(CHARS), col.x, cy);
+        }
+      });
+
+      rafRef.current = requestAnimationFrame(tick);
+    };
+
+    rafRef.current = requestAnimationFrame(tick);
+
+    return () => {
+      window.removeEventListener("resize", resize);
+      cancelAnimationFrame(rafRef.current);
+    };
+  }, []);
+
+  /* ── COUNTDOWN ── */
+  useEffect(() => {
+    let seconds = 30;
     const tick = () => {
       seconds--;
       if (countRef.current) countRef.current.textContent = seconds;
       if (seconds <= 0) {
         clearInterval(timerRef.current);
-        navigate('/');
+        navigate("/");
       }
     };
     timerRef.current = setInterval(tick, 1000);
     return () => clearInterval(timerRef.current);
   }, [navigate]);
 
-  // Glitch animation restart on hover
-  const glitchRef = useRef(null);
-  const restartGlitch = () => {
-    if (!glitchRef.current) return;
-    glitchRef.current.style.animation = 'none';
-    void glitchRef.current.offsetWidth; // reflow
-    glitchRef.current.style.animation = '';
-  };
-
   return (
     <PageTransition>
-      <div style={{ background: '#040610', minHeight: '100vh', color: '#fff', overflowX: 'hidden' }}>
+      <div
+        style={{
+          background: "#040610",
+          minHeight: "100vh",
+          color: "#fff",
+          overflowX: "hidden",
+        }}
+      >
         <Helmet>
-          <title>404 — Page Not Found | MDS Software Development Services</title>
+          <title>
+            404 — Page Not Found | MDS Software Development Services
+          </title>
         </Helmet>
 
         <style>{`
@@ -47,73 +139,62 @@ function NotFound() {
             --blue: #2563eb;
             --cyan: #06b6d4;
             --bg: #040610;
-            --bg2: #070b1a;
             --border: rgba(255,255,255,0.07);
             --text-muted: rgba(255,255,255,0.45);
           }
 
           .nf-wrap * { box-sizing: border-box; margin: 0; padding: 0; }
 
-          /* ── KEYFRAMES ── */
           @keyframes fadeUp {
             from { opacity: 0; transform: translateY(24px); }
             to   { opacity: 1; transform: translateY(0); }
           }
-          @keyframes gridPan {
-            0%   { background-position: 0 0; }
-            100% { background-position: 48px 48px; }
-          }
-          @keyframes glow1Pulse {
-            0%,100% { opacity: 0.7; transform: translateX(-50%) scale(1); }
-            50%      { opacity: 1;   transform: translateX(-50%) scale(1.08); }
-          }
-          @keyframes glow2Pulse {
-            0%,100% { opacity: 0.5; }
-            50%      { opacity: 0.9; }
-          }
+          @keyframes blink { 0%,100% { opacity:1; } 50% { opacity:0.2; } }
           @keyframes gradientShift {
             0%,100% { background-position: 0% 50%; }
             50%      { background-position: 100% 50%; }
           }
-          @keyframes blink { 0%,100% { opacity:1; } 50% { opacity:0.2; } }
-
-          /* Glitch effect on "404" */
-          @keyframes glitch-clip-1 {
-            0%        { clip-path: inset(40% 0 50% 0); transform: translate(-4px, 0); }
-            20%       { clip-path: inset(70% 0 10% 0); transform: translate(4px, 0); }
-            40%       { clip-path: inset(10% 0 80% 0); transform: translate(-2px, 0); }
-            60%       { clip-path: inset(55% 0 30% 0); transform: translate(3px, 0); }
-            80%       { clip-path: inset(25% 0 60% 0); transform: translate(-3px, 0); }
-            100%      { clip-path: inset(40% 0 50% 0); transform: translate(0, 0); }
+          @keyframes codeGlow {
+            0%,100% {
+              filter: drop-shadow(0 0 20px rgba(37,99,235,0.4))
+                      drop-shadow(0 0 60px rgba(37,99,235,0.15));
+            }
+            50% {
+              filter: drop-shadow(0 0 40px rgba(6,182,212,0.6))
+                      drop-shadow(0 0 100px rgba(37,99,235,0.25));
+            }
           }
-          @keyframes glitch-clip-2 {
-            0%        { clip-path: inset(20% 0 70% 0); transform: translate(4px, 0); color: #06b6d4; }
-            25%       { clip-path: inset(60% 0 20% 0); transform: translate(-4px, 0); color: #2563eb; }
-            50%       { clip-path: inset(5%  0 90% 0); transform: translate(3px, 0);  color: #06b6d4; }
-            75%       { clip-path: inset(45% 0 40% 0); transform: translate(-2px, 0); color: #2563eb; }
-            100%      { clip-path: inset(20% 0 70% 0); transform: translate(0, 0); }
+          @keyframes scanLine {
+            0%   { top: -2px; opacity: 0; }
+            5%   { opacity: 1; }
+            95%  { opacity: 0.5; }
+            100% { top: 100%; opacity: 0; }
           }
-          @keyframes glitch-main {
-            0%,90%,100% { transform: translate(0); }
-            92%         { transform: translate(-3px, 1px); }
-            94%         { transform: translate(3px, -1px); }
-            96%         { transform: translate(-2px, 2px); }
-            98%         { transform: translate(2px, -2px); }
-          }
-
-          /* Countdown ring */
           @keyframes countdownStroke {
             from { stroke-dashoffset: 0; }
             to   { stroke-dashoffset: 283; }
           }
 
-          /* Scanline overlay */
-          @keyframes scanMove {
-            0%   { transform: translateY(-100%); }
-            100% { transform: translateY(100vh); }
+          .nf-canvas {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            z-index: 0;
+            opacity: 0.4;
+            pointer-events: none;
           }
-
-          /* ── LAYOUT ── */
+          .nf-vignette {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            pointer-events: none;
+            background: radial-gradient(
+              ellipse 70% 70% at 50% 50%,
+              rgba(4,6,16,0.55) 0%,
+              rgba(4,6,16,0.82) 55%,
+              rgba(4,6,16,0.97) 100%
+            );
+          }
           .nf-page {
             min-height: 100vh;
             display: flex;
@@ -122,151 +203,85 @@ function NotFound() {
             text-align: center;
             padding: 160px 24px 100px;
             position: relative;
-            overflow: hidden;
+            z-index: 1;
           }
-
-          /* Background grid */
-          .nf-grid {
-            position: absolute; inset: 0;
-            background-image:
-              linear-gradient(rgba(37,99,235,0.04) 1px, transparent 1px),
-              linear-gradient(90deg, rgba(37,99,235,0.04) 1px, transparent 1px);
-            background-size: 48px 48px;
-            mask-image: radial-gradient(ellipse 100% 100% at 50% 0%, black 30%, transparent 80%);
-            pointer-events: none;
-            animation: gridPan 18s linear infinite;
-          }
-
-          /* Glow blobs */
-          .nf-glow-1 {
-            position: absolute;
-            width: 700px; height: 700px;
-            border-radius: 50%;
-            background: radial-gradient(circle, rgba(37,99,235,0.12) 0%, transparent 70%);
-            top: -100px; left: 50%;
-            transform: translateX(-50%);
-            pointer-events: none;
-            animation: glow1Pulse 6s ease-in-out infinite;
-          }
-          .nf-glow-2 {
-            position: absolute;
-            width: 350px; height: 350px;
-            border-radius: 50%;
-            background: radial-gradient(circle, rgba(6,182,212,0.07) 0%, transparent 70%);
-            bottom: 10%; right: 8%;
-            pointer-events: none;
-            animation: glow2Pulse 8s ease-in-out infinite;
-          }
-
-          /* Scanline */
-          .nf-scan {
-            position: absolute; inset: 0;
-            pointer-events: none;
-            overflow: hidden;
-            z-index: 0;
-          }
-          .nf-scan::after {
-            content: '';
-            position: absolute;
-            left: 0; right: 0;
-            height: 2px;
-            background: linear-gradient(90deg, transparent, rgba(6,182,212,0.12), transparent);
-            animation: scanMove 6s linear infinite;
-          }
-
-          /* ── CONTENT ── */
           .nf-content {
             position: relative;
-            z-index: 1;
-            max-width: 680px;
+            z-index: 2;
+            max-width: 700px;
           }
 
-          /* Eyebrow pill */
+          /* Eyebrow */
           .nf-eyebrow {
             display: inline-flex;
             align-items: center;
             gap: 8px;
             padding: 5px 14px 5px 10px;
-            background: rgba(239,68,68,0.1);
-            border: 1px solid rgba(239,68,68,0.25);
+            background: rgba(239,68,68,0.08);
+            border: 1px solid rgba(239,68,68,0.2);
             border-radius: 100px;
             font-family: 'JetBrains Mono', monospace;
             font-size: 11px;
             color: #f87171;
-            letter-spacing: 0.08em;
+            letter-spacing: 0.1em;
             text-transform: uppercase;
-            margin-bottom: 36px;
+            margin-bottom: 32px;
             animation: fadeUp 0.5s ease both;
           }
           .nf-eyebrow-dot {
             width: 6px; height: 6px;
             background: #f87171;
             border-radius: 50%;
-            animation: blink 1.5s ease infinite;
+            animation: blink 1.2s ease infinite;
+            box-shadow: 0 0 6px rgba(239,68,68,0.6);
           }
 
-          /* Big 404 glitch number */
+          /* 404 */
           .nf-code-wrap {
             position: relative;
             display: inline-block;
-            margin-bottom: 32px;
+            margin-bottom: 28px;
             animation: fadeUp 0.5s ease 0.1s both;
+          }
+          .nf-scan {
+            position: absolute;
+            left: -10%; right: -10%;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, rgba(6,182,212,0.7), rgba(37,99,235,0.7), transparent);
+            pointer-events: none;
+            animation: scanLine 4s linear infinite;
           }
           .nf-code {
             font-family: 'Outfit', sans-serif;
-            font-size: clamp(100px, 18vw, 180px);
+            font-size: clamp(110px, 20vw, 200px);
             font-weight: 900;
             letter-spacing: -0.06em;
             line-height: 1;
-            background: linear-gradient(135deg, #fff 0%, rgba(255,255,255,0.5) 100%);
+            background: linear-gradient(135deg, #fff 0%, #60a5fa 40%, #06b6d4 70%, #2563eb 100%);
+            background-size: 300%;
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
-            position: relative;
-            animation: glitch-main 5s ease-in-out infinite;
-            cursor: default;
+            animation: gradientShift 5s ease infinite, codeGlow 3s ease-in-out infinite;
             user-select: none;
-          }
-          .nf-code::before,
-          .nf-code::after {
-            content: '404';
-            position: absolute;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            font-family: 'Outfit', sans-serif;
-            font-size: clamp(100px, 18vw, 180px);
-            font-weight: 900;
-            letter-spacing: -0.06em;
-          }
-          .nf-code::before {
-            color: #2563eb;
-            animation: glitch-clip-1 4s ease-in-out infinite;
-            opacity: 0.7;
-            -webkit-text-fill-color: #2563eb;
-          }
-          .nf-code::after {
-            color: #06b6d4;
-            animation: glitch-clip-2 4s ease-in-out infinite 0.15s;
-            opacity: 0.7;
-            -webkit-text-fill-color: #06b6d4;
+            cursor: default;
           }
 
-          /* Divider line */
           .nf-divider {
             width: 60px; height: 2px;
             background: linear-gradient(90deg, #2563eb, #06b6d4);
-            margin: 0 auto 28px;
+            margin: 0 auto 24px;
             border-radius: 2px;
+            box-shadow: 0 0 10px rgba(37,99,235,0.4);
             animation: fadeUp 0.5s ease 0.2s both;
           }
-
           .nf-title {
             font-family: 'Outfit', sans-serif;
-            font-size: clamp(22px, 3vw, 32px);
+            font-size: clamp(20px, 3vw, 30px);
             font-weight: 800;
             letter-spacing: -0.03em;
             color: #fff;
-            margin-bottom: 14px;
+            margin-bottom: 12px;
             animation: fadeUp 0.5s ease 0.25s both;
           }
           .nf-desc {
@@ -275,7 +290,7 @@ function NotFound() {
             color: var(--text-muted);
             line-height: 1.8;
             max-width: 420px;
-            margin: 0 auto 48px;
+            margin: 0 auto 44px;
             animation: fadeUp 0.5s ease 0.3s both;
           }
 
@@ -285,7 +300,7 @@ function NotFound() {
             gap: 14px;
             justify-content: center;
             flex-wrap: wrap;
-            margin-bottom: 56px;
+            margin-bottom: 48px;
             animation: fadeUp 0.5s ease 0.35s both;
           }
           .btn-main {
@@ -297,9 +312,9 @@ function NotFound() {
             font-size: 15px;
             color: #fff;
             text-decoration: none;
+            letter-spacing: -0.01em;
             box-shadow: 0 8px 32px rgba(37,99,235,0.35);
             transition: all 0.3s ease;
-            letter-spacing: -0.01em;
             position: relative;
             overflow: hidden;
           }
@@ -322,8 +337,8 @@ function NotFound() {
             font-size: 15px;
             color: rgba(255,255,255,0.7);
             text-decoration: none;
-            transition: all 0.3s ease;
             letter-spacing: -0.01em;
+            transition: all 0.3s ease;
           }
           .btn-ghost:hover {
             border-color: rgba(37,99,235,0.4);
@@ -332,7 +347,7 @@ function NotFound() {
             transform: translateY(-3px);
           }
 
-          /* Countdown ring */
+          /* Countdown */
           .nf-countdown {
             display: flex;
             flex-direction: column;
@@ -340,13 +355,8 @@ function NotFound() {
             gap: 10px;
             animation: fadeUp 0.5s ease 0.4s both;
           }
-          .nf-countdown-ring {
-            position: relative;
-            width: 56px; height: 56px;
-          }
-          .nf-countdown-ring svg {
-            transform: rotate(-90deg);
-          }
+          .nf-countdown-ring { position: relative; width: 56px; height: 56px; }
+          .nf-countdown-ring svg { transform: rotate(-90deg); }
           .nf-countdown-ring circle.track {
             fill: none;
             stroke: rgba(255,255,255,0.07);
@@ -360,6 +370,7 @@ function NotFound() {
             stroke-dasharray: 283;
             stroke-dashoffset: 0;
             animation: countdownStroke 10s linear forwards;
+            filter: drop-shadow(0 0 4px rgba(37,99,235,0.5));
           }
           .nf-countdown-num {
             position: absolute;
@@ -373,31 +384,32 @@ function NotFound() {
           }
           .nf-countdown-label {
             font-family: 'JetBrains Mono', monospace;
-            font-size: 11px;
+            font-size: 10px;
             color: var(--text-muted);
-            letter-spacing: 0.08em;
+            letter-spacing: 0.1em;
             text-transform: uppercase;
           }
 
-          /* Quick nav links */
+          /* Quick nav */
           .nf-nav-links {
             display: flex;
             gap: 8px;
             justify-content: center;
             flex-wrap: wrap;
-            margin-top: 40px;
+            margin-top: 36px;
             animation: fadeUp 0.5s ease 0.45s both;
           }
           .nf-nav-link {
-            padding: 6px 16px;
+            padding: 5px 14px;
             background: rgba(255,255,255,0.03);
             border: 1px solid rgba(255,255,255,0.07);
             border-radius: 100px;
             font-family: 'JetBrains Mono', monospace;
-            font-size: 11px;
-            color: rgba(255,255,255,0.45);
+            font-size: 10px;
+            color: rgba(255,255,255,0.35);
             text-decoration: none;
-            letter-spacing: 0.05em;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
             transition: all 0.25s ease;
           }
           .nf-nav-link:hover {
@@ -405,9 +417,9 @@ function NotFound() {
             color: #60a5fa;
             background: rgba(37,99,235,0.07);
             transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(37,99,235,0.1);
           }
 
-          /* Responsive */
           @media (max-width: 480px) {
             .nf-page { padding: 120px 20px 80px; }
             .nf-actions { flex-direction: column; align-items: center; }
@@ -416,76 +428,80 @@ function NotFound() {
         `}</style>
 
         <Navbar />
+        <canvas ref={canvasRef} className="nf-canvas" />
+        <div className="nf-vignette" />
 
         <div className="nf-wrap">
           <main className="nf-page">
-            <div className="nf-grid" />
-            <div className="nf-glow-1" />
-            <div className="nf-glow-2" />
-            <div className="nf-scan" />
-
             <div className="nf-content">
-
-              {/* Eyebrow */}
               <div className="nf-eyebrow">
                 <span className="nf-eyebrow-dot" />
                 Error 404 · Page not found
               </div>
 
-              {/* Glitch 404 */}
-              <div
-                className="nf-code-wrap"
-                ref={glitchRef}
-                onMouseEnter={restartGlitch}
-              >
+              <div className="nf-code-wrap">
+                <div className="nf-scan" />
                 <div className="nf-code">404</div>
               </div>
 
               <div className="nf-divider" />
 
-              <h1 className="nf-title">Looks like you're lost in the matrix.</h1>
+              <h1 className="nf-title">
+                Looks like you're lost in the matrix.
+              </h1>
               <p className="nf-desc">
-                The page you're looking for doesn't exist, was moved, or never existed in the first place. Let's get you back on track.
+                The page you're looking for doesn't exist, was moved, or never
+                existed in the first place. Let's get you back on track.
               </p>
 
-              {/* Action buttons */}
               <div className="nf-actions">
-                <Link to="/" className="btn-main">← Back to Home</Link>
-                <Link to="/contact" className="btn-ghost">Report an Issue</Link>
+                <Link to="/" className="btn-main">
+                  ← Back to Home
+                </Link>
+                <Link to="/contact" className="btn-ghost">
+                  Report an Issue
+                </Link>
               </div>
 
-              {/* Countdown */}
               <div className="nf-countdown">
                 <div className="nf-countdown-ring">
                   <svg width="56" height="56" viewBox="0 0 56 56">
                     <defs>
-                      <linearGradient id="countGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-                        <stop offset="0%"   stopColor="#2563eb" />
+                      <linearGradient
+                        id="countGrad"
+                        x1="0%"
+                        y1="0%"
+                        x2="100%"
+                        y2="0%"
+                      >
+                        <stop offset="0%" stopColor="#2563eb" />
                         <stop offset="100%" stopColor="#06b6d4" />
                       </linearGradient>
                     </defs>
-                    <circle className="track"    cx="28" cy="28" r="24" />
+                    <circle className="track" cx="28" cy="28" r="24" />
                     <circle className="progress" cx="28" cy="28" r="24" />
                   </svg>
-                  <span className="nf-countdown-num" ref={countRef}>10</span>
+                  <span className="nf-countdown-num" ref={countRef}>
+                    10
+                  </span>
                 </div>
                 <span className="nf-countdown-label">Redirecting to home</span>
               </div>
 
-              {/* Quick nav */}
               <div className="nf-nav-links">
                 {[
-                  { label: 'Home',     to: '/' },
-                  { label: 'About',    to: '/about' },
-                  { label: 'Services', to: '/services' },
-                  { label: 'Projects', to: '/projects' },
-                  { label: 'Packages', to: '/packages' },
-                  { label: 'Contact',  to: '/contact' },
+                  { label: "Home", to: "/" },
+                  { label: "About", to: "/about" },
+                  { label: "Services", to: "/services" },
+                  { label: "Projects", to: "/projects" },
+                  { label: "Packages", to: "/packages" },
+                  { label: "Contact", to: "/contact" },
                 ].map(({ label, to }) => (
-                  <Link key={to} to={to} className="nf-nav-link">{label}</Link>
+                  <Link key={to} to={to} className="nf-nav-link">
+                    {label}
+                  </Link>
                 ))}
               </div>
-
             </div>
           </main>
         </div>
